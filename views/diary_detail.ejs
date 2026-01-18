@@ -1,0 +1,134 @@
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+  <!-- 戻る + 編集/削除（横並び） -->
+  <div class="flex items-center justify-between mb-4">
+
+    <!-- 戻るリンク -->
+    <a href="<%= 
+      from === 'calendar' ? '/diary_calendar' :
+      from === 'my'       ? '/diary_my' :
+      from === 'date'     ? `/diary?date=${diary.date}` :
+      '/diary'
+    %>"
+    class="text-body hover:text-heading text-sm flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 18l-6-6 6-6"/>
+      </svg>
+      戻る
+    </a>
+
+    <!-- 編集・削除ボタン（自分の投稿のときだけ表示） -->
+<% if (String(diary.user) === String(user._id)) { %>
+
+  <div class="flex items-center gap-3">
+
+    <!-- 編集 -->
+    <a href="/diary_edit/<%= diary._id %>"
+       class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition shadow">
+      編集
+    </a>
+
+    <!-- 削除 -->
+    <button
+      type="button"
+      data-modal-target="deleteDiaryModal-<%= diary._id %>"
+      data-modal-toggle="deleteDiaryModal-<%= diary._id %>"
+      class="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition shadow">
+      削除
+    </button>
+
+  </div>
+
+<% } %>
+
+<!-- 削除モーダル -->
+<div id="deleteDiaryModal-<%= diary._id %>" tabindex="-1" aria-hidden="true"
+     class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center
+            w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+
+      <!-- ヘッダー -->
+      <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          日記を削除しますか？
+        </h3>
+        <button type="button"
+                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
+                       text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+                       dark:hover:text-white"
+                data-modal-hide="deleteDiaryModal-<%= diary._id %>">
+          ✕
+        </button>
+      </div>
+
+      <!-- 本文 -->
+      <div class="p-4 md:p-5 space-y-4">
+        <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+          この操作は取り消せません。
+        </p>
+      </div>
+
+      <!-- フッター -->
+      <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
+
+        <form action="/diary_delete" method="POST" class="delete-form m-0">
+          <input type="hidden" name="postId" value="<%= diary._id %>">
+          <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
+            削除する
+          </button>
+        </form>
+
+        <button type="button"
+                class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
+                       focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
+                       px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
+                       dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
+                       dark:focus:ring-gray-600"
+                data-modal-hide="deleteDiaryModal-<%= diary._id %>">
+          キャンセル
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+
+  </div>
+
+<main class="max-w-2xl mx-auto p-6">
+
+
+  <!-- タイトル -->
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">
+    <%= diary.title || "（無題）" %>
+  </h1>
+
+  <!-- 投稿日時 -->
+  <p class="text-sm text-gray-500 mb-6">
+    <%= diary.time %>
+  </p>
+
+  <!-- 本文 -->
+  <div class="prose whitespace-pre-wrap text-gray-800">
+    <%= diary.content %>
+  </div>
+
+  <!-- 画像（任意） -->
+  <% if (diary.image) { %>
+    <div class="mt-6">
+      <img src="<%= diary.image %>" alt="diary image" class="rounded-md shadow">
+    </div>
+  <% } %>
+
+</main>
+
+
+
+
+
+

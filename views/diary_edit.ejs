@@ -1,0 +1,44 @@
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+  <!-- 戻る -->
+  <a href="/diary/<%= diary._id %>"
+     class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 18l-6-6 6-6"/>
+    </svg>
+    戻る
+  </a>
+
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">日記を編集</h1>
+
+  <form action="/diary_edit" method="POST" class="space-y-6">
+
+    <input type="hidden" name="postId" value="<%= diary._id %>">
+
+    <!-- タイトル -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
+      <input type="text" name="title"
+             value="<%= diary.title %>"
+             class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
+    </div>
+
+    <!-- 本文 -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">本文</label>
+      <textarea name="content" rows="10"
+                class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300"><%= diary.content %></textarea>
+    </div>
+
+    <!-- 保存ボタン -->
+    <div class="flex justify-end">
+      <button type="submit"
+              class="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition shadow">
+        保存する
+      </button>
+    </div>
+
+  </form>
+
+</main>

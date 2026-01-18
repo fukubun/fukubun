@@ -1,0 +1,244 @@
+
+
+
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+<ol class="timeline space-y-6">
+
+<div class="flex items-center justify-between mt-6 mb-6 pr-2">
+
+  <!-- 左：見出し -->
+ <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center flex-1">
+  <% if (date) { 
+       const d = new Date(date);
+       const youbi = ["日","月","火","水","木","金","土"][d.getDay()];
+       const jp = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${youbi})`;
+  %>
+    <%= jp %> の日記
+  <% } else { %>
+    みんなの日記
+  <% } %>
+</h2>
+
+  <!-- 右：カレンダーアイコン -->
+  <a href="/diary_calendar" class="hover:opacity-80 mr-3">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round"
+      class="lucide lucide-calendar-days-icon lucide-calendar-days text-gray-700 dark:text-gray-300">
+      <path d="M8 2v4"/>
+      <path d="M16 2v4"/>
+      <rect width="18" height="18" x="3" y="4" rx="2"/>
+      <path d="M3 10h18"/>
+      <path d="M8 14h.01"/>
+      <path d="M12 14h.01"/>
+      <path d="M16 14h.01"/>
+      <path d="M8 18h.01"/>
+      <path d="M12 18h.01"/>
+      <path d="M16 18h.01"/>
+    </svg>
+  </a>
+
+</div>
+  <% if (diaries && diaries.length) { %>
+    <% diaries.forEach(post => { %>
+
+    <li class="timeline-item border-b border-gray-200 dark:border-gray-700 pb-4 last:pb-0 last:border-b-0">
+
+  <div class="card relative p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+
+<!-- 日付 + 削除アイコン（右端） -->
+<div class="flex items-center justify-between mb-1">
+  <time class="text-sm text-gray-500 dark:text-gray-400">
+    <%= post.time %>
+  </time>
+
+  <% if (String(post.user) === String(user._id)) { %>
+    <!-- 削除アイコンボタン（背景なし・黒） -->
+    <button
+      type="button"
+      data-modal-target="deleteDiaryModal-<%= post._id %>"
+      data-modal-toggle="deleteDiaryModal-<%= post._id %>"
+      class="inline-flex items-center justify-center w-8 h-8 text-black hover:text-gray-700 ml-2 z-10"
+      onclick="event.stopPropagation();"
+      aria-label="日記を削除">
+
+      <!-- ゴミ箱アイコン（SVG） -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+
+
+    </button>
+  <% } %>
+</div>
+
+    <!-- タイトル -->
+    <div class="flex items-center justify-between mt-1">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+        「<%= post.title %>」
+      </h3>
+
+<!-- 全体リンク（カード全体をクリック可能にする） -->
+<a href="/diary/<%= post._id %>?from=<%= date ? 'date' : 'list' %>"
+   class="stretched-link absolute inset-0 z-0"
+   aria-label="日記を開く: <%= post.title || '（無題）' %>"></a>     
+
+    <!-- 削除モーダル -->
+    <div id="deleteDiaryModal-<%= post._id %>" tabindex="-1" aria-hidden="true"
+         class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center
+                w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+      <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+
+          <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              日記を削除しますか？
+            </h3>
+            <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
+                           text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+                           dark:hover:text-white"
+                    data-modal-hide="deleteDiaryModal-<%= post._id %>">
+              ✕
+            </button>
+          </div>
+
+          <div class="p-4 md:p-5 space-y-4">
+            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              この操作は取り消せません。
+            </p>
+          </div>
+
+          <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
+
+            <form action="/diary_delete" method="POST" class="delete-form m-0">
+              <input type="hidden" name="postId" value="<%= post._id %>">
+              <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
+                削除する
+              </button>
+            </form>
+
+            <button type="button"
+                    class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
+                           focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
+                           px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
+                           dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
+                           dark:focus:ring-gray-600"
+                    data-modal-hide="deleteDiaryModal-<%= post._id %>">
+              キャンセル
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</li>
+
+    <% }) %>
+  <% } else { %>
+
+    <li class="mb-6">
+      <p class="text-gray-500">まだ日記がありません。</p>
+    </li>
+
+  <% } %>
+
+</ol>
+
+
+
+
+
+<!-- スピードダイヤル -->
+<div data-dial-init class="fixed end-6 bottom-6 group z-50">
+
+  <!-- 開いたときのメニュー -->
+  <div id="speed-dial-menu-diary" class="flex flex-col items-center hidden mb-4 space-y-3">
+
+    <!-- 新規日記投稿 -->
+    <a href="/diary_post"
+       class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+      
+    </a>
+
+    <!-- 自分のカレンダー -->
+    <a href="/diary_my"
+       class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200">
+      自分
+    </a>
+
+  </div>
+
+  <!-- メインボタン（開閉） -->
+  <button type="button"
+          data-dial-toggle="speed-dial-menu-diary"
+          aria-controls="speed-dial-menu-diary"
+          aria-expanded="false"
+          class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+    <svg class="w-6 h-6 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 12h14m-7 7V5"/>
+    </svg>
+  </button>
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- 左固定サイドバー -->
+<aside class="fixed top-0 left-0 z-40 w-16 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+  <div class="h-full flex flex-col items-center py-4">
+
+    <!-- ホーム（タイムライン）アイコン -->
+    <a href="/timeline" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-house-icon lucide-house">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </a>
+
+    <!-- プロフィールアイコン -->
+    <a href="/profile" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen-icon lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+    </a>
+
+<a href="/tokumei" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text-icon lucide-notebook-text"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/></svg>
+          </a>
+
+<a href="/question" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ear-icon lucide-ear"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></svg></a>
+
+<a href="/reads" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>
+</a>
+
+<a href="/diary" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+</a>
+
+
+    <!-- 中段のアイコン群 -->
+    <div class="flex flex-col items-center space-y-6">
+      <!-- 他のアイコンをここに追加 -->
+    </div>
+      
+<!-- ★ 最下部のユーザーアイコン -->
+   <div class="mt-auto mb-4">
+      <img src="<%= user && user.icon ? user.icon : '/default-avatar.png' %>" class="w-9 h-9 rounded-full" alt="avatar">
+    </div>
+ 
+
+</aside>

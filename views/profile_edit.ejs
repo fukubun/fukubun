@@ -1,0 +1,139 @@
+<div class="max-w-xl mx-auto pt-10 px-4">
+
+  <!-- ヘッダー（見出しと右端の大きめ✕ボタンを同一行に配置） -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      プロフィール編集
+    </h1>
+
+    <a href="/profile"
+       class="inline-flex items-center justify-center w-12 h-12 rounded-full text-gray-600 hover:text-gray-900
+              dark:text-gray-300 dark:hover:text-white bg-transparent focus:outline-none focus:ring-2 focus:ring-offset-2
+              focus:ring-blue-500"
+       aria-label="プロフィールに戻る">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </a>
+  </div>
+
+  <!-- ★ メインの編集フォーム -->
+  <form action="/profile/edit" method="POST" enctype="multipart/form-data" class="space-y-6">
+
+    <!-- 現在のアイコン + 新しいアイコン選択 -->
+    <div class="flex items-center gap-4">
+      <img id="currentIcon"
+           src="<%= user.icon %>"
+           class="w-16 h-16 rounded-full object-cover border" />
+
+      <div class="flex-1">
+        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          新しいアイコン画像を選択
+        </label>
+
+        <input type="file" id="iconInput" name="icon" accept="image/*"
+               class="block text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer
+                      bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700
+                      dark:border-gray-600 dark:placeholder-gray-400">
+      </div>
+    </div>
+
+    <!-- 初期アイコンに戻すボタン -->
+    <div>
+      <button type="button"
+          id="resetIconBtn"
+          class="text-sm text-black underline">
+        初期アイコンに戻す
+      </button>
+    </div>
+
+    <!-- 初期化フラグ（保存時に使う） -->
+    <input type="hidden" name="resetIcon" id="resetIconFlag" value="false">
+
+    <!-- 名前 -->
+    <div>
+      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">名前</label>
+      <input type="text" name="name"
+             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                    focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                    dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                    dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+             value="<%= user.name %>">
+    </div>
+
+    <!-- 自己紹介 -->
+    <div>
+      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">自己紹介</label>
+      <textarea name="bio" rows="4"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                       dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                       dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"><%= user.bio %></textarea>
+    </div>
+
+    <!-- 保存ボタン -->
+    <div>
+      <button type="submit"
+              class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300
+                     font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500
+                     dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+        保存する
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<!-- プレビュー & 初期アイコンに戻す JS -->
+<script>
+  // アイコン入力要素と現在表示要素を取得
+  const iconInput = document.getElementById("iconInput");
+  const currentIcon = document.getElementById("currentIcon");
+  const resetFlag = document.getElementById("resetIconFlag");
+
+  // 新しい画像を選んだ瞬間にプレビュー
+  if (iconInput && currentIcon) {
+    iconInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      currentIcon.src = url;
+
+      // 初期化フラグをオフに戻す
+      if (resetFlag) resetFlag.value = "false";
+    });
+  }
+
+  // 初期アイコンに戻すボタン
+  const resetBtn = document.getElementById("resetIconBtn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      // プレビューを初期アイコンに変更
+      if (currentIcon) currentIcon.src = "/images/default_icon.svg";
+
+      // 保存時に初期アイコンに戻すためのフラグ
+      if (resetFlag) resetFlag.value = "true";
+
+      // ファイル選択をクリア（誤上書き防止）
+      if (iconInput) iconInput.value = "";
+    });
+  }
+
+  // オプション: フォーム送信時に未保存確認を出す場合は以下を有効化
+  // const form = document.querySelector('form[action="/profile/edit"]');
+  // if (form) {
+  //   let isDirty = false;
+  //   form.addEventListener('input', () => { isDirty = true; });
+  //   window.addEventListener('beforeunload', (e) => {
+  //     if (isDirty) {
+  //       e.preventDefault();
+  //       e.returnValue = '';
+  //     }
+  //   });
+  //   form.addEventListener('submit', () => { isDirty = false; });
+  // }
+</script>

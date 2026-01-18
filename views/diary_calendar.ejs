@@ -1,0 +1,164 @@
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+<!-- 戻るリンク（from に応じて戻る） -->
+  <a href="<%= 
+    '/diary'
+  %>"
+  class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 18l-6-6 6-6"/>
+    </svg>
+    戻る
+  </a>
+
+  <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center mt-4 mb-6">
+    みんなの日記カレンダー
+  </h2>
+
+  <div id="calendar" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow w-full"></div>
+
+</main>
+
+<script>
+  // ★ サーバーから渡された日記日付
+  const diaryDates = <%- JSON.stringify(diaryDates) %>;
+  console.log("diaryDates =", diaryDates); // ← デバッグ用（消してOK）
+
+  function generateCalendar(year, month) {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+
+    const date = new Date(year, month, 1);
+    const monthName = date.toLocaleString("ja-JP", { month: "long" });
+    const firstDay = date.getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+   
+    // --- ヘッダー ---
+    const header = document.createElement("div");
+    header.className = "flex justify-between items-center mb-4";
+    header.innerHTML = `
+      <button id="prev" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded">←</button>
+      <div class="text-xl font-bold">${year}年 ${monthName}</div>
+      <button id="next" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded">→</button>
+    `;
+    calendar.appendChild(header);
+
+    // --- 曜日 ---
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    const weekRow = document.createElement("div");
+    weekRow.className = "grid grid-cols-7 text-center font-bold mb-2";
+    weekdays.forEach(d => {
+      const cell = document.createElement("div");
+      cell.textContent = d;
+      weekRow.appendChild(cell);
+    });
+    calendar.appendChild(weekRow);
+
+    // --- 日付グリッド ---
+    const grid = document.createElement("div");
+    grid.className = "grid grid-cols-7 text-center gap-y-2";
+
+    for (let i = 0; i < firstDay; i++) {
+      grid.appendChild(document.createElement("div"));
+    }
+
+    for (let d = 1; d <= lastDate; d++) {
+      const cell = document.createElement("div");
+      cell.className = "py-1 h-12 flex flex-col items-center justify-center cursor-pointer";
+
+      const mm = String(month + 1).padStart(2, "0");
+      const dd = String(d).padStart(2, "0");
+      const dateStr = `${year}-${mm}-${dd}`;
+
+      const dayText = document.createElement("div");
+      dayText.textContent = d;
+
+      // ★ 黒い点（●）
+      // ★ 黒い点（小さな丸）
+const dot = document.createElement("div");
+
+if (diaryDates.includes(dateStr)) {
+  dot.style.width = "7px";        // ← 小さい点
+  dot.style.height = "7px";
+  dot.style.backgroundColor = "black";
+  dot.style.borderRadius = "50%"; // ← 丸くする
+  dot.style.marginTop = "2px";    // ← 日付との間隔
+}
+      cell.appendChild(dayText);
+      cell.appendChild(dot);
+
+      cell.onclick = () => {
+        window.location.href = `/diary?date=${dateStr}`;
+      };
+
+      grid.appendChild(cell);
+    }
+
+    calendar.appendChild(grid);
+
+    // --- 前月・次月 ---
+    document.getElementById("prev").onclick = () => {
+      const newDate = new Date(year, month - 1, 1);
+      generateCalendar(newDate.getFullYear(), newDate.getMonth());
+    };
+    document.getElementById("next").onclick = () => {
+      const newDate = new Date(year, month + 1, 1);
+      generateCalendar(newDate.getFullYear(), newDate.getMonth());
+    };
+  }
+
+  // 初期表示
+  const today = new Date();
+  generateCalendar(today.getFullYear(), today.getMonth());
+</script>
+
+<!-- 左固定サイドバー -->
+<aside class="fixed top-0 left-0 z-40 w-16 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+  <div class="h-full flex flex-col items-center py-4">
+
+    <!-- ホーム（タイムライン）アイコン -->
+    <a href="/timeline" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-house-icon lucide-house">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </a>
+
+    <!-- プロフィールアイコン -->
+    <a href="/profile" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen-icon lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+    </a>
+
+<a href="/tokumei" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text-icon lucide-notebook-text"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/></svg>
+          </a>
+
+<a href="/question" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ear-icon lucide-ear"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></svg></a>
+
+<a href="/reads" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>
+</a>
+
+<a href="/diary" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+</a>
+
+
+    <!-- 中段のアイコン群 -->
+    <div class="flex flex-col items-center space-y-6">
+      <!-- 他のアイコンをここに追加 -->
+    </div>
+      
+<!-- ★ 最下部のユーザーアイコン -->
+    <div class="mt-auto mb-4">
+      <img src="<%= user && user.icon ? user.icon : '/default-avatar.png' %>" class="w-9 h-9 rounded-full" alt="avatar">
+    </div>
+
+
+</aside>
+

@@ -1,0 +1,198 @@
+<main class="pl-16 max-w-3xl mx-auto p-6">
+
+  <!-- 上部プロフィール（表示対象の相手） -->
+  <div class="flex items-center gap-4 mb-6">
+    <img src="<%= profileUser.icon %>" class="w-20 h-20 rounded-full">
+    <div>
+      <h1 class="text-2xl font-bold"><%= profileUser.name %></h1>
+      <p class="text-gray-500">@<%= profileUser.username %></p>
+    </div>
+  </div>
+
+  <% if (profileUser.bio) { %>
+    <p class="mb-6 whitespace-pre-line"><%= profileUser.bio %></p>
+  <% } %>
+
+<div class="flex gap-6 text-gray-600 mt-2">
+  <span>フォロー中 <%= followingCount %></span>
+  <span>フォロワー <%= followerCount %></span>
+</div>
+
+  <% const isFollowing = user.following.includes(profileUser.username); %>
+
+<div class="mt-6 w-full max-w-3xl flex items-center justify-between">
+
+  <% if (!isFollowing) { %>
+    <!-- フォローする -->
+    <form action="/follow/<%= profileUser.username %>" method="POST">
+      <button
+        class="px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300
+               font-medium rounded-lg text-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+        フォロー
+      </button>
+    </form>
+
+  <% } else { %>
+    <!-- フォロー解除 -->
+    <form action="/unfollow/<%= profileUser.username %>" method="POST">
+      <button
+        class="px-5 py-2.5 text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300
+               font-medium rounded-lg text-sm dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900">
+        フォロー中
+      </button>
+    </form>
+  <% } %>
+
+  <!-- 投げ銭アイコン -->
+  <a href="/support/<%= profileUser.username %>"
+     class="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+    <!-- コインアイコン（Heroicons風） -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-heart-icon lucide-hand-heart"><path d="M11 14h2a2 2 0 0 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m14.45 13.39 5.05-4.694C20.196 8 21 6.85 21 5.75a2.75 2.75 0 0 0-4.797-1.837.276.276 0 0 1-.406 0A2.75 2.75 0 0 0 11 5.75c0 1.2.802 2.248 1.5 2.946L16 11.95"/><path d="m2 15 6 6"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a1 1 0 0 0-2.75-2.91"/></svg>
+  </a>
+
+</div>
+
+<h2 class="text-xl font-semibold mt-10 mb-4">投稿一覧</h2>
+
+  <ol class="timeline relative">
+    <% if (posts && posts.length) { %>
+      <% posts.forEach(post => { %>
+        <li class="mb-6 relative">
+          <div class="flex gap-3 items-start">
+            <a href="/profile/<%= post.username %>">
+              <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full">
+            </a>
+
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-gray-900"><%= post.user %></span>
+                <span class="text-gray-500 text-sm"><%= post.username %></span>
+                <span class="text-gray-500 text-sm">· <%= post.time %></span>
+              </div>
+
+              <% 
+                const lines = String(post.message || '')
+                  .replace(/\r/g, '')
+                  .split('\n')
+                  .filter(line => line.trim() !== '');
+              %>
+              <% if (lines.length > 0) { %>
+                <p class="text-gray-900 leading-relaxed whitespace-pre-line m-0"><%= lines.join('\n') %></p>
+              <% } %>
+
+              <% if (post.image) { %>
+                <img src="<%= post.image %>" class="w-full rounded-lg mt-3 border object-cover">
+              <% } %>
+
+              <div class="flex justify-between text-gray-500 text-sm mt-3 select-none">
+                <button class="hover:text-green-500 transition-colors">リポスト</button>
+
+                <button class="like-btn inline-flex items-center gap-1" data-id="<%= post.id %>">
+  <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+    </svg>
+  <% } else { %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+    </svg>
+  <% } %>
+
+  <span class="text-sm"><%= post.likes %></span>
+</button>
+
+
+                <button class="hover:text-gray-700 transition-colors">ブックマーク</button>
+
+                <% if (post.username === user.username) { %>
+                  <button data-modal-target="deleteModal-<%= post.id %>" data-modal-toggle="deleteModal-<%= post.id %>" class="hover:text-red-600 transition-colors">削除</button>
+
+                  <!-- 削除モーダル（省略可能） -->
+                  <div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto fixed top-0 right-0 left-0 z-50 justify-center items-center w-full h-[calc(100%-1rem)] max-h-full">
+                    <div class="relative p-4 w-full max-w-md max-h-full">
+                      <div class="relative bg-white rounded-lg shadow">
+                        <div class="flex items-center justify-between p-4 rounded-t">
+                          <h3 class="text-lg font-semibold text-gray-900">投稿を削除しますか？</h3>
+                          <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="deleteModal-<%= post.id %>">✕</button>
+                        </div>
+                        <div class="p-4 space-y-4">
+                          <p class="text-base leading-relaxed text-gray-500">この操作は取り消せません。本当に削除してよろしいですか？</p>
+                        </div>
+                        <div class="flex items-center justify-end p-4 rounded-b">
+                          <form action="/delete/<%= post.id %>" method="POST">
+                            <input type="hidden" name="redirect" value="profile">
+                            <button class="hover:text-red-500 transition-colors">削除する</button>
+                          </form>
+                          <button data-modal-hide="deleteModal-<%= post.id %>" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 rounded-lg border border-gray-300 text-sm font-medium px-5 py-2.5">キャンセル</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% } %>
+
+              </div>
+            </div>
+          </div>
+        </li>
+      <% }) %>
+    <% } else { %>
+      <li class="mb-6">
+        <p class="text-gray-500">投稿がありません。</p>
+      </li>
+    <% } %>
+  </ol>
+
+</main>
+
+<!-- 左固定サイドバー -->
+<aside class="fixed top-0 left-0 z-40 w-16 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+  <div class="h-full flex flex-col items-center py-4">
+
+    <!-- ホーム（タイムライン）アイコン -->
+    <a href="/timeline" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-house-icon lucide-house">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </a>
+
+    <!-- プロフィールアイコン -->
+    <a href="/profile" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen-icon lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+    </a>
+
+<a href="/tokumei" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text-icon lucide-notebook-text"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/></svg>
+          </a>
+
+<a href="/question" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ear-icon lucide-ear"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></svg></a>
+
+<a href="/reads" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>
+</a>
+
+<a href="/diary" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+</a>
+
+
+    <!-- 中段のアイコン群 -->
+    <div class="flex flex-col items-center space-y-6">
+      <!-- 他のアイコンをここに追加 -->
+    </div>
+
+    <!-- サイドバー最下部（常にログイン中の自分） -->
+<div class="mt-auto mb-4">
+  <img src="<%= user.icon %>" class="w-7 h-7 rounded-full">
+</div>
+
+  </div>
+</aside>
+
+<script src="/js/like.js"></script>
+
+

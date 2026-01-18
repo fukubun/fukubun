@@ -1,0 +1,275 @@
+<!-- 左固定サイドバー -->
+<aside class="fixed top-0 left-0 z-40 w-16 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+  <div class="h-full flex flex-col items-center py-4">
+
+    <!-- ホーム（タイムライン）アイコン -->
+    <a href="/timeline" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-house-icon lucide-house">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </a>
+
+    <!-- プロフィールアイコン -->
+    <a href="/profile" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen-icon lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+    </a>
+
+<a href="/tokumei" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text-icon lucide-notebook-text"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/></svg>
+          </a>
+
+<a href="/question" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ear-icon lucide-ear"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></svg></a>
+
+<a href="/reads" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>
+</a>
+
+<a href="/diary" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+</a>
+
+
+    <!-- 中段のアイコン群 -->
+    <div class="flex flex-col items-center space-y-6">
+      <!-- 他のアイコンをここに追加 -->
+    </div>
+
+    <!-- 最下部のユーザーアイコン -->
+    <div class="mt-auto mb-4">
+      <img src="<%= user.icon %>" class="w-9 h-9 rounded-full">
+    </div>
+
+  </div>
+</aside>
+
+<!-- メインカラム全体：サイドバー幅ぶんだけ右に寄せる -->
+<main class="pl-16">
+  <div class="max-w-xl mx-auto pt-0 px-4">
+
+    <!-- プロフィールブロック -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+
+      <!-- 上部：アイコン + 名前 -->
+      <div class="flex items-center space-x-4">
+       <img src="<%= user.icon %>" class="w-20 h-20 rounded-full">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <%= user.name %>
+          </h2>
+          <p class="text-gray-500 dark:text-gray-400">@<%= user.username %></p>
+        </div>
+      </div>
+
+      <!-- 自己紹介 -->
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">自己紹介</h3>
+        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+          <%= user.bio && user.bio.trim() !== "" ? user.bio : "自己紹介はまだありません。" %>
+        </p>
+      </div>
+
+      <!-- 統計（投稿数など） -->
+      <div class="mt-6 grid grid-cols-3 text-center">
+  <div>
+    <p class="text-xl font-bold text-gray-900 dark:text-white"><%= posts.length %></p>
+    <p class="text-gray-500 dark:text-gray-400 text-sm">投稿</p>
+  </div>
+  <div>
+    <p class="text-xl font-bold text-gray-900 dark:text-white"><%= followingCount %></p>
+    <p class="text-gray-500 dark:text-gray-400 text-sm">フォロー</p>
+  </div>
+  <div>
+    <p class="text-xl font-bold text-gray-900 dark:text-white"><%= followerCount %></p>
+    <p class="text-gray-500 dark:text-gray-400 text-sm">フォロワー</p>
+  </div>
+</div>
+
+      <!-- 編集ボタン -->
+      <div class="mt-6">
+        <a href="/profile/edit"
+           class="block w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300
+                  font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500
+                  dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+          プロフィールを編集
+        </a>
+      </div>
+
+    </div>
+
+    <!-- 投稿一覧 -->
+<div class="mt-8">
+  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">投稿一覧</h3>
+
+  <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+
+    <% if (posts && posts.length) { %>
+      <% posts.forEach(post => { %>
+
+        <li class="py-6">
+
+          <div class="flex gap-3 items-start">
+
+            <!-- アバター -->
+            <img src="<%= post.userIcon ? post.userIcon : user.icon %>" class="w-10 h-10 rounded-full">
+
+            <div class="flex-1 min-w-0">
+
+              <!-- 名前・ユーザー名・時間 -->
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-gray-900"><%= post.user %></span>
+                <span class="text-gray-500 text-sm">@<%= post.username %></span>
+                <span class="text-gray-500 text-sm">· <%= post.time %></span>
+              </div>
+
+              <!-- 本文（改行対応） -->
+              <%
+                const lines = String(post.message)
+                  .replace(/\r/g, '')
+                  .split('\n')
+                  .filter(line => line.trim() !== '');
+              %>
+
+              <% if (lines.length > 0) { %>
+  <p class="text-gray-900 leading-relaxed whitespace-pre-line m-0"><%= lines.join('\n') %></p>
+<% } %>
+
+<% if (post.image) { %>
+  <img src="<%= post.image %>" class="w-full rounded-lg mt-3 border object-cover">
+<% } %>
+
+
+              <!-- アクションボタン -->
+              <div class="flex justify-between text-gray-500 text-sm mt-3 select-none">
+                <button class="hover:text-blue-500 transition-colors">コメント</button>
+                <button class="hover:text-green-500 transition-colors">リポスト</button>
+
+                <button class="like-btn inline-flex items-center gap-1" data-id="<%= post.id %>">
+  <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+    </svg>
+  <% } else { %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+    </svg>
+  <% } %>
+
+  <span class="text-sm"><%= post.likes %></span>
+</button>
+
+                <button class="hover:text-gray-700 transition-colors">ブックマーク</button>
+
+                <!-- ★ 自分の投稿だけ削除ボタンを表示 -->
+                <% if (post.username === user.username) { %>
+
+                  <button
+                    data-modal-target="deleteModal-<%= post.id %>"
+                    data-modal-toggle="deleteModal-<%= post.id %>"
+                    class="hover:text-red-600 transition-colors">
+                    削除
+                  </button>
+
+                  <!-- 削除モーダル（置き換え） -->
+<div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50
+         justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+
+      <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          投稿を削除しますか？
+        </h3>
+        <button type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
+                 text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+                 dark:hover:text-white"
+          data-modal-hide="deleteModal-<%= post.id %>">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 space-y-4">
+        <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+          この操作は取り消せません。 本当に削除してよろしいですか？
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end p-4 md:p-5 rounded-b">
+
+        <!-- フォーム：redirect を /profile に固定 -->
+        <form action="/delete/<%= post.id %>" method="POST" class="delete-form m-0">
+          <input type="hidden" name="redirect" value="/profile">
+          <button type="submit"
+            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none
+                   focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center
+                   dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-900">
+            削除する
+          </button>
+        </form>
+
+        <button data-modal-hide="deleteModal-<%= post.id %>"
+          class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
+                 focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
+                 px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
+                 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
+                 dark:focus:ring-gray-600">
+          キャンセル
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+                <% } %>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </li>
+
+      <% }) %>
+
+    <% } else { %>
+
+      <li class="py-6">
+        <p class="text-gray-500">投稿がありません。</p>
+      </li>
+
+    <% } %>
+
+  </ul>
+</div>
+
+  </div>
+</main>
+
+<!-- スピードダイヤル（そのまま） -->
+<div data-dial-init class="fixed end-6 bottom-6 group z-50">
+  <div id="speed-dial-menu-default" class="flex flex-col items-center hidden mb-4 space-y-2">
+    <button type="button" class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200">
+      <!-- svg -->
+    </button>
+  </div>
+
+  <a href="/post?from=profile"
+   class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+  <svg class="w-6 h-6 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M5 12h14m-7 7V5"/>
+  </svg>
+</a>
+</div>
+
+<script src="/js/like.js"></script>
+

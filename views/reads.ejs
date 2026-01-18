@@ -1,0 +1,237 @@
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+  <!-- 今日の読書 -->
+  <div class="p-4 space-y-4">
+
+  <!-- タイトル＋本棚アイコンを横並び -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold">今日の読書</h2>
+
+    <!-- 本棚ページへのアイコン -->
+    <a href="/reads_shelf" class="text-gray-600 hover:text-gray-800">
+      <!-- Heroicons の bookshelf アイコン（本棚っぽい） -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-icon lucide-library"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+    </a>
+  </div>
+
+  <div class="text-gray-600">
+
+  <% 
+    let totalToday = 0;
+    books.forEach(book => {
+      totalToday += book.todayReadingSeconds || 0;
+    });
+    const totalTodayMin = Math.floor(totalToday / 60);
+  %>
+
+  <p>読書時間：<%= totalTodayMin %>分</p>
+  <p>メモ：0件</p>
+  <p>読み終わった本：0冊</p>
+</div>
+
+  <div class="flex gap-3">
+    <button class="px-4 py-2 bg-gray-800 text-white rounded-md">
+      読書を始める
+    </button>
+
+    <button id="openIsbnModal" class="px-4 py-2 bg-gray-800 text-white rounded-md">
+  本を読み取る
+</button>
+  </div>
+
+</div>
+
+<div class="p-4 mt-6">
+
+    <h2 class="text-lg font-bold mb-2">続きを読む</h2>
+
+<% if (readingBooks.length === 0) { %>
+  <p class="text-gray-500">一時停止中の本はありません</p>
+<% } else { %>
+  <div class="grid grid-cols-3 gap-4">
+    <% readingBooks.forEach(book => { %>
+      <a href="/shelf/<%= book._id %>?from=reads">
+        <div class="w-full h-48 bg-gray-200 rounded-md shadow-sm overflow-hidden">
+          <img src="<%= book.thumbnail %>" class="w-full h-full object-cover">
+        </div>
+      </a>
+    <% }) %>
+  </div>
+<% } %>
+
+<!-- 最近読んだ本 -->
+<div class="p-4 mt-6">
+
+  <h2 class="text-lg font-semibold mb-4">最近読んだ本</h2>
+
+  <div class="grid grid-cols-3 gap-4">
+    <% recentBooks.forEach(book => { %>
+      <a href="/shelf/<%= book._id %>?from=reads">
+        <div class="w-full h-48 bg-gray-200 rounded-md shadow-sm overflow-hidden">
+          <img src="<%= book.thumbnail %>" class="w-full h-full object-cover">
+        </div>
+      </a>
+    <% }) %>
+
+    <% if (recentBooks.length === 0) { %>
+      <p class="text-gray-500 col-span-3">最近読んだ本はありません</p>
+    <% } %>
+  </div>
+
+</div>
+
+</main>
+
+<div id="appNotification"
+     class="hidden fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow z-[999999] transition-opacity duration-500">
+</div>
+
+
+<!-- ISBN入力モーダル -->
+<div id="isbnModal"
+     class="hidden fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
+  <div class="bg-white p-6 rounded-md shadow w-80 pointer-events-auto">
+    <h2 class="text-lg font-semibold mb-4">ISBNを入力</h2>
+
+    <input id="isbnInput"
+           type="text"
+           class="w-full border p-2 rounded mb-4"
+           placeholder="978xxxxxxxxxx">
+
+    <div class="flex gap-2">
+      <button id="closeIsbnModal"
+              class="w-1/2 bg-gray-300 text-gray-800 py-2 rounded-md">
+        戻る
+      </button>
+
+      <button id="submitIsbn"
+              class="w-1/2 bg-gray-800 text-white py-2 rounded-md">
+        追加する
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("isbnModal");
+    const openBtn = document.getElementById("openIsbnModal");
+    const closeBtn = document.getElementById("closeIsbnModal");
+    const submitBtn = document.getElementById("submitIsbn");
+
+    function showNotification(message) {
+      const box = document.getElementById("appNotification");
+      box.textContent = message;
+      box.classList.remove("hidden");
+      box.style.opacity = "1";
+
+      setTimeout(() => {
+        box.style.opacity = "0";
+        setTimeout(() => box.classList.add("hidden"), 500);
+      }, 2000);
+    }
+
+    openBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+    });
+
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      const isbn = document.getElementById("isbnInput").value.trim();
+      if (!isbn) return;
+
+      const api = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&country=JP`
+      );
+      const data = await api.json();
+
+      if (!data.items || data.items.length === 0) {
+        showNotification("本が見つかりません");
+        modal.classList.add("hidden");
+        return;
+      }
+
+      const book = data.items[0].volumeInfo;
+
+      const res = await fetch("/books/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: book.title,
+          authors: book.authors || [],
+          thumbnail: book.imageLinks?.thumbnail || "",
+          isbn
+        })
+      });
+
+      if (res.ok) {
+        showNotification("本棚に追加しました");
+      } else {
+        showNotification("保存に失敗しました");
+      }
+
+if (res.status === 409) {
+  showNotification("この本はすでに本棚にあります");
+  modal.classList.add("hidden");
+  return;
+}
+
+      modal.classList.add("hidden");
+    });
+  });
+</script>
+
+
+
+
+<!-- 左固定サイドバー -->
+<aside class="fixed top-0 left-0 z-40 w-16 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+  <div class="h-full flex flex-col items-center py-4">
+
+    <!-- ホーム（タイムライン）アイコン -->
+    <a href="/timeline" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-house-icon lucide-house">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </a>
+
+    <!-- プロフィールアイコン -->
+    <a href="/profile" class="mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-pen-icon lucide-user-round-pen"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><circle cx="10" cy="8" r="5"/></svg>
+    </a>
+
+<a href="/tokumei" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text-icon lucide-notebook-text"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/></svg>
+          </a>
+
+<a href="/question" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ear-icon lucide-ear"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"/></svg></a>
+
+<a href="/reads" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>
+</a>
+
+<a href="/diary" class="mb-6">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+</a>
+
+
+    <!-- 中段のアイコン群 -->
+    <div class="flex flex-col items-center space-y-6">
+      <!-- 他のアイコンをここに追加 -->
+    </div>
+      
+<!-- ★ 最下部のユーザーアイコン -->
+   <div class="mt-auto mb-4">
+      <img src="<%= user && user.icon ? user.icon : '/default-avatar.png' %>" class="w-9 h-9 rounded-full" alt="avatar">
+    </div>
+ 
+
+</aside>

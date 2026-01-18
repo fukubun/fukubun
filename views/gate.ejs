@@ -1,0 +1,23 @@
+<main class="max-w-sm mx-auto p-6">
+  <h1 class="text-xl font-semibold mb-4">Fukubun</h1>
+
+  <form action="/gate" method="POST" class="space-y-4">
+    <input
+      type="password"
+      name="pass"
+      placeholder="パスワード"
+      class="w-full p-3 border rounded-md"
+    />
+
+    <button
+      type="submit"
+      class="w-full p-3 bg-gray-800 text-white rounded-md"
+    >
+      入室
+    </button>
+
+    <% if (typeof error !== "undefined") { %>
+      <p class="text-red-600 text-sm"><%= error %></p>
+    <% } %>
+  </form>
+</main>

@@ -1,0 +1,25 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- timeline overrides (dev only) --- */
+.timeline { position: relative; }
+.timeline ol { border-left: 2px solid #e5e7eb; padding-left: 1.5rem; }
+.timeline .dot,
+.timeline .timeline-dot,
+.timeline span {
+  background-color: #e5e7eb;
+  border: 1px solid #e2e8f0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  display: inline-block;
+  position: absolute;
+  left: -0.75rem;
+  top: 0.25rem;
+  box-sizing: border-box;
+}
+.timeline svg,
+.timeline .big-arrow,
+.timeline .arrow-large { width: 1rem !important; height: 1rem !important; display: inline-block !important; }
+.timeline .big-arrow, .timeline .arrow-large { display: none !important; }

@@ -1,0 +1,66 @@
+<div class="p-4 max-w-3xl mx-auto">
+
+<!-- 戻るリンク（from に応じて戻る） -->
+  <a href="<%= 
+    '/diary'
+  %>"
+  class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 18l-6-6 6-6"/>
+    </svg>
+    戻る
+  </a>
+
+
+  <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+    日記を書く
+  </h2>
+
+  <form action="/diary_post" method="POST" class="space-y-4">
+
+    <!-- タイトル -->
+    <div>
+      <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        タイトル
+      </label>
+      <input id="title" name="title" type="text"
+        class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300
+               focus:ring-blue-500 focus:border-blue-500
+               dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+               dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        placeholder="今日のまとめや一言タイトルを入力…">
+    </div>
+
+    <!-- 本文 -->
+    <div>
+      <label for="content" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        内容
+      </label>
+      <textarea id="content" name="content" rows="10"
+        class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300
+               focus:ring-blue-500 focus:border-blue-500
+               dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+               dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        placeholder="今日の出来事や気持ちを書いてください…"></textarea>
+    </div>
+
+<div class="flex items-center gap-2 mt-4">
+  <input type="checkbox" id="isPublic" name="isPublic"
+         class="w-4 h-4 text-blue-600 border-gray-300 rounded">
+  <label for="isPublic" class="text-sm text-gray-700">
+    この日記をみんなに公開する
+  </label>
+</div>
+
+    <!-- 投稿ボタン -->
+    <button type="submit"
+      class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg
+             hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300
+             dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+      投稿する
+    </button>
+
+  </form>
+
+</div>

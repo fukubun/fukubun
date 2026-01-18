@@ -1,0 +1,73 @@
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+<a href="<%=
+  from === 'review' ? '/tokumei_review' :
+  from === 'tokumei_novel' ? '/tokumei_novel' :
+  from === 'tokumei_save' ? '/tokumei_save' :
+  from === 'tokumei_log' ? '/tokumei_log' :
+  '/tokumei'
+%>"
+class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M15 19l-7-7 7-7" />
+  </svg>
+  戻る
+</a>
+
+  <!-- タイトル -->
+  <h1 class="text-2xl font-bold text-gray-900 mb-4">
+    <%= post.title || "（無題）" %>
+  </h1>
+
+  <!-- 本文 -->
+  <div class="prose whitespace-pre-wrap text-gray-800">
+    <%= post.message %>
+  </div>
+
+  <!-- 画像がある場合 -->
+  <% if (post.image) { %>
+    <div class="mt-6">
+      <img src="<%= post.image %>" class="rounded-lg shadow" />
+    </div>
+  <% } %>
+
+ <!-- 評価ボタン -->
+<div class="mt-6">
+  <form action="/tokumei_review" method="POST" class="flex gap-3">
+
+    <!-- ★ postId は必ず _id を使う -->
+    <input type="hidden" name="postId" value="<%= post._id %>">
+
+    <!-- ★ redirect を 5ページ完全対応に -->
+    <input type="hidden" name="redirect"
+      value="<%=
+        from === 'review' ? 'tokumei_review' :
+        from === 'tokumei_novel' ? 'tokumei_novel' :
+        from === 'tokumei_save' ? 'tokumei_save' :
+        from === 'tokumei_log' ? 'tokumei_log' :
+        'tokumei'
+      %>">
+
+    <!-- Bad -->
+    <button type="submit" name="rating" value="bad"
+      class="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 dark:bg-gray-800 dark:text-red-400 dark:border-red-500">
+      Bad
+    </button>
+
+    <!-- いいね -->
+    <button type="submit" name="rating" value="good"
+      class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 dark:bg-gray-800 dark:text-blue-400 dark:border-blue-500">
+      いいね
+    </button>
+
+    <!-- 素晴らしい -->
+    <button type="submit" name="rating" value="great"
+      class="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 dark:bg-gray-800 dark:text-green-400 dark:border-green-500">
+      素晴らしい
+    </button>
+
+  </form>
+</div>
+
+</main>

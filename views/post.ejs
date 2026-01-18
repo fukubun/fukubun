@@ -1,0 +1,77 @@
+<main class="max-w-2xl mx-auto p-6">
+
+  <!-- ヘッダー -->
+  <div class="flex items-center gap-3 mb-6">
+    <a href="<%= from === 'profile' ? '/profile' : '/timeline' %>" class="text-2xl leading-none">✕</a>
+    <h1 class="text-xl font-semibold text-gray-900">新規投稿</h1>
+  </div>
+
+  <!-- 投稿フォーム -->
+  <form action="/post" method="POST" enctype="multipart/form-data" class="space-y-4">
+
+    <!-- ★ 投稿元をサーバーに伝える -->
+    <input type="hidden" name="redirect" value="<%= from %>">
+
+    <!-- アバター + テキストエリア -->
+    <div class="flex gap-3">
+      <img src="<%= user.icon %>" class="w-10 h-10 rounded-full">
+
+      <textarea id="message" name="message" rows="5"
+        class="block w-full p-3 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+        placeholder="いまどうしてる？"></textarea>
+    </div>
+
+ <!-- ★ 画像プレビュー -->
+    <div id="imagePreviewWrapper" class="hidden">
+      <img id="imagePreview" class="w-full max-h-80 object-cover rounded-lg border" />
+      <button type="button" id="clearImageBtn" class="text-sm text-gray-700 mt-2 underline">
+        画像を削除
+      </button>
+    </div>
+
+    <!-- ★ 画像選択 -->
+    <div>
+      <label class="block text-sm font-medium text-gray-900 mb-1">画像を追加</label>
+      <input type="file" id="imageInput" name="image" accept="image/*"
+        class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50">
+    </div>
+
+
+    <!-- 投稿ボタン -->
+    <div class="flex justify-end">
+      <button type="submit"
+        class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300">
+        投稿する
+      </button>
+    </div>
+
+  </form>
+
+</main>
+
+<!-- ★ プレビュー JS -->
+<script>
+  const input = document.getElementById('imageInput');
+  const preview = document.getElementById('imagePreview');
+  const wrapper = document.getElementById('imagePreviewWrapper');
+  const clearBtn = document.getElementById('clearImageBtn');
+
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      wrapper.classList.add('hidden');
+      preview.src = "";
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    wrapper.classList.remove('hidden');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = "";
+    preview.src = "";
+    wrapper.classList.add('hidden');
+  });
+</script>

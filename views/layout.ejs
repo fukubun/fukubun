@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fukubun</title>
+
+  <!-- Flowbite CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" />
+
+  <!-- Tailwind 出力CSS -->
+  <link rel="stylesheet" href="/output.css?v=<%= Date.now() %>">
+</head>
+
+<!-- ★ メイン画面は「サイドバーを含むページだけ」で右にずらす -->
+<body class="bg-white dark:bg-gray-900">
+
+  <!-- ★ ページごとの内容がここに入る -->
+  <%- body %>
+
+  <!-- Flowbite JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
+</body>
+</html>
