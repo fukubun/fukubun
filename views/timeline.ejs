@@ -11,13 +11,13 @@
 <main class="pl-0 sm:pl-16 px-4 max-w-3xl mx-auto p-0 flex-1 min-w-0">
 
 <!-- スマホ限定ヘッダー -->
-<div class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200 z-50 relative">
-  <!-- ハンバーガー -->
-  <button id="menuBtn" class="p-2 bg-white rounded shadow">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2">
-      <path d="M3 6h18M3 12h18M3 18h18"/>
-    </svg>
-  </button>
+<div class="md:hidden flex items-center gap-3 px-4 h-10 border-b border-gray-200 z-50 relative">
+  <!-- ハンバーガー（SVGクリック） -->
+  <svg id="menuBtn" xmlns="http://www.w3.org/2000/svg"
+       class="w-7 h-7 text-gray-800 cursor-pointer"
+       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18M3 12h18M3 18h18"/>
+  </svg>
 
   <!-- タイトル -->
   <span class="text-lg font-semibold">福文タイムライン</span>
@@ -27,10 +27,12 @@
 
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
-        <li class="mb-3 relative pb-3">
-  <div class="absolute inset-x-0 bottom-0 h-px bg-gray-200 dark:bg-gray-700"></div>
+       <li class="mb-3 relative pb-3">
+  <!-- 線（必ず最前面に出す） -->
+  <div class="absolute inset-x-0 bottom-0 h-px bg-gray-200 dark:bg-gray-700 pointer-events-none z-0"></div>
 
-
+  <!-- 投稿内容（線より上に来ないよう z-10 を付ける） -->
+  <div class="relative z-10">
 
           <div class="flex gap-3 items-start">
 
