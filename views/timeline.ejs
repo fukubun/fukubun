@@ -8,156 +8,104 @@
 </head>
 <body class="bg-white dark:bg-gray-900">
 
-<main class="pl-0 sm:pl-16 px-4 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+<main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
 
 <!-- スマホ限定ヘッダー -->
-<div class="md:hidden flex items-center gap-3 px-4 h-10 border-b border-gray-200 z-50 relative">
-  <!-- ハンバーガー（SVGクリック） -->
-  <svg id="menuBtn" xmlns="http://www.w3.org/2000/svg"
-       class="w-7 h-7 text-gray-800 cursor-pointer"
-       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 6h18M3 12h18M3 18h18"/>
-  </svg>
+<div class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200
+            sticky top-0 bg-white z-50">
+ <svg id="menuBtn"
+     xmlns="http://www.w3.org/2000/svg"
+     width="24" height="24"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="cursor-pointer lucide lucide-menu-icon lucide-menu">
+  <path d="M4 5h16"/>
+  <path d="M4 12h16"/>
+  <path d="M4 19h16"/>
+</svg>
 
-  <!-- タイトル -->
-  <span class="text-xl font-bold">福文タイムライン</span>
+  <span class="text-lg font-semibold">タイムライン</span>
+</div>
 
-  <ol class="timeline relative">
+  <!-- ★ px を外す（線が端まで届くように） -->
+  <ol class="timeline relative pt-3">
 
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
-      <li class="mb-3 relative pb-3">
+        <li class="mb-3 relative border-b border-gray-200 dark:border-gray-700 last:border-b-0 pb-3">
 
-  <!-- 線（投稿内容より上に置く） -->
-  <div class="absolute inset-x-0 bottom-0 h-px bg-gray-200 dark:bg-gray-700 pointer-events-none z-20"></div>
+          <!-- ★ 投稿内容の幅を維持するための内側コンテナ -->
+          <div class="px-4">
 
-  <!-- 投稿内容（線より下） -->
-  <div class="relative z-10">
+            <div class="flex gap-3 items-start">
 
-          <div class="flex gap-3 items-start">
+              <a href="/profile/<%= post.username %>">
+                <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full object-cover" alt="<%= post.user %>のアイコン">
+              </a>
 
-            <a href="/profile/<%= post.username %>">
-              <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full object-cover" alt="<%= post.user %>のアイコン">
-            </a>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-gray-900"><%= post.user %></span>
+                  <span class="text-gray-500 text-sm"><%= post.username %></span>
+                  <span class="text-gray-500 text-sm">· <%= post.time %></span>
+                </div>
 
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-semibold text-gray-900"><%= post.user %></span>
-                <span class="text-gray-500 text-sm"><%= post.username %></span>
-                <span class="text-gray-500 text-sm">· <%= post.time %></span>
-              </div>
-
-              <% 
-                const lines = String(post.message)
-                  .replace(/\r/g, '')
-                  .split('\n')
-                  .filter(line => line.trim() !== '');
-              %>
-              <% if (lines.length > 0) { %>
-                <p class="text-gray-900 leading-relaxed whitespace-pre-line m-0"><%= lines.join('\n') %></p>
-              <% } %>
-
-              <% if (post.image) { %>
-                <img src="<%= post.image %>" class="w-full rounded-lg mt-3 border object-cover" alt="投稿画像">
-              <% } %>
-
-              <div class="flex justify-between text-gray-500 text-sm mt-3 select-none items-center">
-                <button class="hover:text-green-500 transition-colors">リポスト</button>
-
-                <button class="like-btn inline-flex items-center gap-1" data-id="<%= post.id %>" aria-label="いいね">
-                  <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
-                    </svg>
-                  <% } else { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
-                    </svg>
-                  <% } %>
-
-                  <span class="text-sm"><%= post.likes %></span>
-                </button>
-
-                <button class="hover:text-gray-700 transition-colors">ブックマーク</button>
-
-                <% if (post.username === user.username) { %>
-
-  <!-- 削除を開くボタン（type="button" にして即時 submit を防ぐ） -->
-  <button
-    type="button"
-    data-modal-target="deleteModal-<%= post.id %>"
-    data-modal-toggle="deleteModal-<%= post.id %>"
-    class="hover:text-red-600 transition-colors">
-    削除
-  </button>
-
-  <!-- 削除モーダル -->
-  <div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true"
-       class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center
-              w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-
-    <div class="relative p-4 w-full max-w-md max-h-full">
-      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-
-        <!-- ヘッダー -->
-        <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            投稿を削除しますか？
-          </h3>
-          <button type="button"
-                  class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
-                         text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
-                         dark:hover:text-white"
-                  data-modal-hide="deleteModal-<%= post.id %>">
-            ✕
-          </button>
-        </div>
-
-        <!-- 本文 -->
-        <div class="p-4 md:p-5 space-y-4">
-          <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-            この操作は取り消せません。  
-            本当に削除してよろしいですか？
-          </p>
-        </div>
-
-        <!-- フッター（モーダル内フォーム） -->
-        <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
-
-          <!-- モーダル内のフォームで初めて submit する -->
-          <form action="/delete/<%= post.id %>" method="POST" class="delete-form m-0">
-            <input type="hidden" name="redirect" value="timeline">
-            <!-- CSRF トークンを使っている場合はここに hidden input を追加 -->
-            <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
-              削除する
-            </button>
-          </form>
-
-          <button type="button" data-modal-hide="deleteModal-<%= post.id %>"
-                  class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
-                         focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
-                         px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
-                         dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
-                         dark:focus:ring-gray-600">
-            キャンセル
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-
-                <% } else { %>
-                  <!-- レイアウトを揃えるための不可視プレースホルダ -->
-                  <button class="invisible pointer-events-none" aria-hidden="true">削除</button>
+                <% 
+                  const lines = String(post.message)
+                    .replace(/\r/g, '')
+                    .split('\n')
+                    .filter(line => line.trim() !== '');
+                %>
+                <% if (lines.length > 0) { %>
+                  <p class="text-gray-900 leading-relaxed whitespace-pre-line m-0"><%= lines.join('\n') %></p>
                 <% } %>
 
+                <% if (post.image) { %>
+                  <img src="<%= post.image %>" class="w-full rounded-lg mt-3 border object-cover" alt="投稿画像">
+                <% } %>
+
+                <div class="flex justify-between text-gray-500 text-sm mt-3 select-none items-center">
+                  <button class="hover:text-green-500 transition-colors">リポスト</button>
+
+                  <button class="like-btn inline-flex items-center gap-1" data-id="<%= post.id %>" aria-label="いいね">
+                    <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+                      </svg>
+                    <% } else { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+                      </svg>
+                    <% } %>
+
+                    <span class="text-sm"><%= post.likes %></span>
+                  </button>
+
+                  <button class="hover:text-gray-700 transition-colors">ブックマーク</button>
+
+                  <% if (post.username === user.username) { %>
+                    <button
+                      type="button"
+                      data-modal-target="deleteModal-<%= post.id %>"
+                      data-modal-toggle="deleteModal-<%= post.id %>"
+                      class="hover:text-red-600 transition-colors">
+                      削除
+                    </button>
+                  <% } else { %>
+                    <button class="invisible pointer-events-none" aria-hidden="true">削除</button>
+                  <% } %>
+
+                </div>
               </div>
+
             </div>
 
-          </div>
+          </div> <!-- /px-4 -->
+
         </li>
       <% }) %>
     <% } else { %>
@@ -169,7 +117,6 @@
   </ol>
 
 </main>
-
 
 
 <!-- 左固定サイドバー（PCのみ表示） -->
@@ -331,17 +278,29 @@
   </div>
 </aside>
 
+<!-- ★ overlay はここに置く！ -->
+<div id="overlay"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("menuBtn");
     const menu = document.getElementById("mobileMenu");
+    const overlay = document.getElementById("overlay");
 
+    // メニュー開閉
     btn.addEventListener("click", () => {
       menu.classList.toggle("-translate-x-full");
+      overlay.classList.toggle("hidden");
+    });
+
+    // 何もない場所（overlay）をクリックしたら閉じる
+    overlay.addEventListener("click", () => {
+      menu.classList.add("-translate-x-full");
+      overlay.classList.add("hidden");
     });
   });
 </script>
-
 <script src="/js/like.js"></script>
 
 <!-- スピードダイヤル（そのまま） -->
