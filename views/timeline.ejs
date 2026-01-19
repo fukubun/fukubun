@@ -20,18 +20,18 @@
   </svg>
 
   <!-- タイトル -->
-  <span class="text-lg font-semibold">福文タイムライン</span>
-</div>
+  <span class="text-xl font-bold">福文タイムライン</span>
 
-  <ol class="timeline relative px-1">
+  <ol class="timeline relative">
 
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
-       <li class="mb-3 relative pb-3">
-  <!-- 線（必ず最前面に出す） -->
-  <div class="absolute inset-x-0 bottom-0 h-px bg-gray-200 dark:bg-gray-700 pointer-events-none z-0"></div>
+      <li class="mb-3 relative pb-3">
 
-  <!-- 投稿内容（線より上に来ないよう z-10 を付ける） -->
+  <!-- 線（投稿内容より上に置く） -->
+  <div class="absolute inset-x-0 bottom-0 h-px bg-gray-200 dark:bg-gray-700 pointer-events-none z-20"></div>
+
+  <!-- 投稿内容（線より下） -->
   <div class="relative z-10">
 
           <div class="flex gap-3 items-start">
