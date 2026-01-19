@@ -5,10 +5,12 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Post = require('./models/Post');
-const multer = require('multer');
-const sharp = require('sharp');
+// ★ multer, sharp はもうローカル保存に使わないなら削除してOK
+// const multer = require('multer');
+// const sharp = require('sharp');
 const Diary = require('./models/Diary');
 const Shelf = require("./models/shelf");
+const upload = require('./middleware/upload');
 
 require('dotenv').config();
 
@@ -29,7 +31,7 @@ function formatProfileTime(date) {
   if (diff < 60) return "たった今";
   if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
-  return date.toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" });
+  return date.toLocaleDateString("ja-JP", { year: "numeric", day: "2-digit", month: "2-digit" });
 }
 
 function formatRelativeTime(date) {
@@ -107,26 +109,6 @@ app.use((req, res, next) => {
 });
 
 // -------------------------
-// Upload config (shared)
-// -------------------------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/uploads'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.png';
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    cb(null, name);
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    if (/^image\/(png|jpe?g|webp|gif)$/.test(file.mimetype)) cb(null, true);
-    else cb(new Error('画像ファイルのみ許可されています'), false);
-  }
-});
-
-// -------------------------
 // Routes
 // -------------------------
 
@@ -185,10 +167,12 @@ app.get('/post', (req, res) => {
   res.render('post', { from, user: req.user });
 });
 
-// Create post (timeline)
+// Create post (timeline) ★ Cloudinary 対応版
 app.post('/post', upload.single('image'), async (req, res) => {
   if (!req.user) return res.redirect('/');
+
   const { message, redirect } = req.body;
+
   const postData = {
     user: req.user.name,
     username: req.user.username,
@@ -198,20 +182,18 @@ app.post('/post', upload.single('image'), async (req, res) => {
     likedUsers: [],
     time: new Date()
   };
+
   try {
     if (req.file) {
-      const inputPath = req.file.path;
-      const outputName = `post-${Date.now()}-${req.file.filename}.png`;
-      const outputPath = `public/uploads/${outputName}`;
-      await sharp(inputPath)
-        .resize(800, 800, { fit: 'cover' })
-        .png()
-        .toFile(outputPath);
-      postData.image = `/uploads/${outputName}`;
+      // Cloudinary の URL がここに入る
+      postData.image = req.file.path;
     }
+
     await Post.create(postData);
+
     if (redirect === "profile") return res.redirect('/profile');
     return res.redirect('/timeline');
+
   } catch (err) {
     console.error('timeline post error', err);
     return res.status(500).send('投稿に失敗しました');
@@ -307,19 +289,19 @@ app.get('/profile/edit', (req, res) => {
 
 app.post('/profile/edit', upload.single('icon'), async (req, res) => {
   if (!req.user) return res.redirect('/');
+
   const { name, bio, resetIcon } = req.body;
   const updateData = { name, bio };
+
   if (resetIcon === "true") {
+    // 初期アイコンに戻す
     updateData.icon = "/images/default_icon.svg";
+
   } else if (req.file) {
-    const inputPath = req.file.path;
-    const outputPath = `public/uploads/resized-${req.file.filename}.png`;
-    await sharp(inputPath)
-      .resize(400, 400, { fit: 'cover' })
-      .png()
-      .toFile(outputPath);
-    updateData.icon = `/uploads/resized-${req.file.filename}.png`;
+    // Cloudinary の URL がここに入る
+    updateData.icon = req.file.path;
   }
+
   await User.updateOne({ _id: req.user._id }, updateData);
   res.redirect('/profile');
 });
@@ -328,39 +310,51 @@ app.get('/profile/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
   const username = req.params.username;
   if (req.user.username === username) return res.redirect('/profile');
+
   const profileUser = await User.findOne({ username });
   if (!profileUser) return res.status(404).send("User not found");
+
   const rawPosts = await Post.find({ username }).sort({ time: -1 });
   const posts = rawPosts.map(p => ({ ...p._doc, id: p._id.toString(), time: formatProfileTime(p.time) }));
+
   const users = await User.find({}, 'username icon');
   const userMap = {};
   users.forEach(u => { userMap[u.username] = u.icon; });
+
   const followingCount = Array.isArray(profileUser.following) ? profileUser.following.length : 0;
   const followerCount = await User.countDocuments({ following: profileUser.username });
+
   res.render('profile_other', { user: req.user, profileUser, posts, userMap, followingCount, followerCount });
 });
 
 app.post('/follow/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
   const targetUsername = req.params.username;
+
   const currentUser = await User.findOne({ username: req.user.username });
   const targetUser = await User.findOne({ username: targetUsername });
+
   if (!targetUser || currentUser.username === targetUser.username) return res.redirect('/profile');
+
   const alreadyFollowing = Array.isArray(currentUser.following) && currentUser.following.includes(targetUsername);
+
   if (!alreadyFollowing) {
     currentUser.following = currentUser.following || [];
     currentUser.following.push(targetUsername);
     await currentUser.save();
   }
+
   res.redirect(`/profile/${targetUsername}`);
 });
 
 app.post('/unfollow/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
   const targetUsername = req.params.username;
+
   const currentUser = await User.findOne({ username: req.user.username });
   currentUser.following = (currentUser.following || []).filter(u => u !== targetUsername);
   await currentUser.save();
+
   res.redirect(`/profile/${targetUsername}`);
 });
 
@@ -428,51 +422,47 @@ app.get('/tokumei', async (req, res) => {
 // tokumei_post: 新規匿名投稿画面と投稿処理
 // -------------------------
 
-const uploadTokumei = multer({ dest: path.join(__dirname, 'public', 'uploads') });
+// Cloudinary 用の upload を使う
+// ※ すでに index.js の上部で
+// const upload = require('./middleware/upload');
+// を読み込んでいる前提
 
 // GET: 新規投稿フォーム（tokumei 用）
 app.get('/tokumei_post', (req, res) => {
-  // ログイン必須ならここでチェックしてもよい（ensureAuthenticated 等）
   res.render('tokumei_post', { from: 'tokumei', user: req.user });
 });
 
 // POST: 画像付き匿名投稿の受け取り
-app.post('/tokumei_post', uploadTokumei.single('image'), async (req, res) => {
+app.post('/tokumei_post', upload.single('image'), async (req, res) => {
   try {
     const { title, message, redirect } = req.body || {};
     let imagePath = null;
 
     if (req.file) {
-      const filename = `tokumei_${Date.now()}.jpg`;
-      const outPath = path.join(__dirname, 'public', 'uploads', filename);
-      await sharp(req.file.path)
-        .resize({ width: 1200, withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toFile(outPath);
-      imagePath = `/uploads/${filename}`;
+      // Cloudinary の URL がここに入る
+      imagePath = req.file.path;
     }
 
     if (!req.user) {
-      // ログイン必須前提
       return res.status(403).send('ログインが必要です');
     }
 
-    // 🔥 匿名でも必ず user._id で紐づける（外には出さないだけ）
     const newPost = new Post({
-      user: req.user._id,  // 内部的には紐づけておく
-      username: null,      // 表示しない
-　　　title: title || null,   // ← ★ 追加
+      user: req.user._id,   // 内部的には紐づけておく
+      username: null,       // 表示しない
+      title: title || null,
       message: message || '',
       image: imagePath,
       kind: 'anonymous',
       time: new Date(),
-      owner: req.user._id  // 削除判定で使う
+      owner: req.user._id   // 削除判定で使う
     });
 
     await newPost.save();
 
     const dest = redirect === 'profile' ? '/profile' : '/tokumei';
     res.redirect(dest);
+
   } catch (err) {
     console.error('tokumei_post create error', err);
     res.status(500).send('サーバーエラー');
@@ -630,19 +620,15 @@ app.get('/tokumei_novel_post', (req, res) => {
   res.render('tokumei_novel_post', { from: 'tokumei_novel', user: req.user });
 });
 
-app.post('/tokumei_novel_post', uploadTokumei.single('image'), async (req, res) => {
+// ★ Cloudinary 対応版（uploadTokumei → upload に変更）
+app.post('/tokumei_novel_post', upload.single('image'), async (req, res) => {
   try {
     const { title, message, redirect } = req.body || {};
     let imagePath = null;
 
     if (req.file) {
-      const filename = `novel_${Date.now()}.jpg`;
-      const outPath = path.join(__dirname, 'public', 'uploads', filename);
-      await sharp(req.file.path)
-        .resize({ width: 1200, withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toFile(outPath);
-      imagePath = `/uploads/${filename}`;
+      // Cloudinary の URL がここに入る
+      imagePath = req.file.path;
     }
 
     if (!req.user) {
@@ -655,7 +641,7 @@ app.post('/tokumei_novel_post', uploadTokumei.single('image'), async (req, res) 
       title: title || null,
       message: message || '',
       image: imagePath,
-      kind: 'novel',       // ← ★ 小説として分類
+      kind: 'novel',
       time: new Date(),
       owner: req.user._id
     });
