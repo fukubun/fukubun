@@ -8,11 +8,10 @@
 </head>
 <body class="bg-white dark:bg-gray-900">
 
-
-<main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+<main class="pl-0 sm:pl-16 px-4 max-w-3xl mx-auto p-0 flex-1 min-w-0">
 
 <!-- スマホ限定ヘッダー -->
-<div class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+<div class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200 z-50 relative">
   <!-- ハンバーガー -->
   <button id="menuBtn" class="p-2 bg-white rounded shadow">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2">
@@ -24,7 +23,7 @@
   <span class="text-lg font-semibold">福文タイムライン</span>
 </div>
 
-  <ol class="timeline relative">
+  <ol class="timeline relative px-1">
 
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
@@ -168,20 +167,7 @@
 
 </main>
 
-<!-- スピードダイヤル（そのまま） -->
-<div data-dial-init class="fixed end-6 bottom-6 group z-50">
-  <div id="speed-dial-menu-default" class="flex flex-col items-center hidden mb-4 space-y-2">
-    <button type="button" class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200">
-      <!-- svg -->
-    </button>
-  </div>
 
-  <a href="/post" class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
-    <svg class="w-6 h-6 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24">
-      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
-    </svg>
-  </a>
-</div>
 
 <!-- 左固定サイドバー（PCのみ表示） -->
 <aside class="sm:block hidden fixed top-0 left-0 z-40 w-48 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">  
@@ -262,16 +248,32 @@
 </aside>
 
 <script>
-  const btn = document.getElementById("menuBtn");
-  const menu = document.getElementById("mobileMenu");
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("menuBtn");
+    const menu = document.getElementById("mobileMenu");
 
-  btn.addEventListener("click", () => {
-    menu.classList.toggle("-translate-x-full");
+    btn.addEventListener("click", () => {
+      menu.classList.toggle("-translate-x-full");
+    });
   });
 </script>
 
-
 <script src="/js/like.js"></script>
+
+<!-- スピードダイヤル（そのまま） -->
+<div data-dial-init class="fixed end-6 bottom-6 group z-50">
+  <div id="speed-dial-menu-default" class="flex flex-col items-center hidden mb-4 space-y-2">
+    <button type="button" class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200">
+      <!-- svg -->
+    </button>
+  </div>
+
+  <a href="/post" class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+    <svg class="w-6 h-6 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+    </svg>
+  </a>
+</div>
 
 </body>
 </html>
