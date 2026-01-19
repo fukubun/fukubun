@@ -11,7 +11,7 @@
           <div class="flex gap-3 items-start">
 
             <a href="/profile/<%= post.username %>">
-              <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full" alt="<%= post.user %>のアイコン">
+              <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full object-cover" alt="<%= post.user %>のアイコン">
             </a>
 
             <div class="flex-1 min-w-0">
