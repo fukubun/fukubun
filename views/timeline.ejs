@@ -8,8 +8,22 @@
 </head>
 <body class="bg-white dark:bg-gray-900">
 
-<main class="relative z-0 max-w-3xl mx-auto p-6 md:pl-48">
 
+
+<main class="pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
+
+<!-- スマホ限定ヘッダー -->
+<div class="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+  <!-- ハンバーガー -->
+  <button id="menuBtn" class="p-2 bg-white rounded shadow">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2">
+      <path d="M3 6h18M3 12h18M3 18h18"/>
+    </svg>
+  </button>
+
+  <!-- タイトル -->
+  <span class="text-lg font-semibold">福文タイムライン</span>
+</div>
 
   <ol class="timeline relative">
 
@@ -169,13 +183,6 @@
     </svg>
   </a>
 </div>
-
-
-<button id="menuBtn" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded shadow">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2">
-    <path d="M3 6h18M3 12h18M3 18h18"/>
-  </svg>
-</button>
 
 <!-- 左固定サイドバー（PCのみ表示） -->
 <aside class="sm:block hidden fixed top-0 left-0 z-40 w-48 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">  
