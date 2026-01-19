@@ -72,12 +72,13 @@
 
 </div>
 
-<h2 class="text-xl font-semibold mt-10 mb-4">投稿一覧</h2>
+<h2 class="text-xl font-semibold mt-10 mb-4 px-4">投稿一覧</h2>
 
   <ol class="timeline relative">
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
         <li class="mb-6 relative">
+<div class="px-4">
           <div class="flex gap-3 items-start">
             <a href="/profile/<%= post.username %>">
               <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full">
