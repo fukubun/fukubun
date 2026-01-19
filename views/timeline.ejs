@@ -159,6 +159,13 @@
   </a>
 </div>
 
+
+<button id="menuBtn" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded shadow">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" stroke="currentColor" fill="none" stroke-width="2">
+    <path d="M3 6h18M3 12h18M3 18h18"/>
+  </svg>
+</button>
+
 <!-- 左固定サイドバー -->
 <aside class="fixed top-0 left-0 z-40 w-48 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
 
@@ -320,30 +327,11 @@
 </aside>
 
 <script>
-  let startX = 0;
-  let endX = 0;
+  const btn = document.getElementById("menuBtn");
+  const menu = document.getElementById("mobileMenu");
 
-  document.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-  });
-
-  document.addEventListener("touchmove", (e) => {
-    endX = e.touches[0].clientX;
-  });
-
-  document.addEventListener("touchend", () => {
-    const menu = document.getElementById("mobileMenu");
-    if (!menu) return;
-
-    // 左端から右へスワイプ → 開く
-    if (startX < 40 && endX - startX > 60) {
-      menu.classList.remove("-translate-x-full");
-    }
-
-    // メニュー開いた状態で左へスワイプ → 閉じる
-    if (startX > 100 && startX - endX > 60) {
-      menu.classList.add("-translate-x-full");
-    }
+  btn.addEventListener("click", () => {
+    menu.classList.toggle("-translate-x-full");
   });
 </script>
 
