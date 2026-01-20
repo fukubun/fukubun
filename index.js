@@ -983,11 +983,13 @@ app.get('/diary_post', (req, res) => {
 app.post('/diary_post', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  // 今日の日付（YYYY-MM-DD）
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
+  // 今日の日付（YYYY-MM-DD）を JST で作る
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+
+  const yyyy = jst.getFullYear();
+  const mm = String(jst.getMonth() + 1).padStart(2, "0");
+  const dd = String(jst.getDate()).padStart(2, "0");
   const dateStr = `${yyyy}-${mm}-${dd}`;
 
   // 今日の日記がすでにあるかチェック
@@ -1003,13 +1005,18 @@ app.post('/diary_post', async (req, res) => {
   // 公開設定
   const isPublic = req.body.isPublic === "on";
 
-  // ★ JST 補正を削除して、純粋にローカル時間を保存する
+  // ★ 時刻も JST に補正して保存
+  const timeStr = jst.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
   await Diary.create({
     user: req.user._id,
     title: req.body.title,
     content: req.body.content,
     date: dateStr,
-    time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+    time: timeStr,
     isPublic
   });
 
