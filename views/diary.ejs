@@ -22,25 +22,24 @@
   <span class="text-lg font-semibold">日記</span>
 </div>
 
-<ol class="timeline space-y-6">
-
+<!-- ヘッダー（ここから） -->
 <div class="flex items-center justify-between mt-6 mb-6 pr-2">
 
   <!-- 左：見出し -->
- <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center flex-1">
-  <% if (date) { 
-       const d = new Date(date);
-       const youbi = ["日","月","火","水","木","金","土"][d.getDay()];
-       const jp = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${youbi})`;
-  %>
-    <%= jp %> の日記
-  <% } else { %>
-    みんなの日記
-  <% } %>
-</h2>
+  <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center flex-1">
+    <% if (date) { 
+         const d = new Date(date);
+         const youbi = ["日","月","火","水","木","金","土"][d.getDay()];
+         const jp = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${youbi})`;
+    %>
+      <%= jp %> の日記
+    <% } else { %>
+      みんなの日記
+    <% } %>
+  </h2>
 
   <!-- 右：カレンダーアイコン -->
-  <a href="/diary_calendar" class="hover:opacity-80 mr-3">
+  <a href="/diary_calendar" class="hover:opacity-80 mr-3 relative z-20">
     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
       stroke-linecap="round" stroke-linejoin="round"
@@ -59,103 +58,120 @@
   </a>
 
 </div>
+<!-- ヘッダー（ここまで） -->
+
+
+<!-- 日記一覧（ここから） -->
+<ol class="timeline space-y-6">
+
   <% if (diaries && diaries.length) { %>
     <% diaries.forEach(post => { %>
 
-    <li class="timeline-item border-b border-gray-200 dark:border-gray-700 pb-4 last:pb-0 last:border-b-0">
+      <li class="timeline-item border-b border-gray-200 dark:border-gray-700 pb-4 last:pb-0 last:border-b-0">
 
-  <div class="card relative p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+        <div class="card relative p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
 
-<!-- 日付 + 削除アイコン（右端） -->
-<div class="text-sm text-gray-500 mb-1">
-  <%= post.jstDate %> <%= post.jstTime %>
-</div>
+          <!-- 日付 + 削除アイコン（左右分離） -->
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm text-gray-500">
+              <%= post.jstDate %> <%= post.jstTime %>
+            </div>
 
-  <% if (String(post.user) === String(user._id)) { %>
-    <!-- 削除アイコンボタン（背景なし・黒） -->
-    <button
-      type="button"
-      data-modal-target="deleteDiaryModal-<%= post._id %>"
-      data-modal-toggle="deleteDiaryModal-<%= post._id %>"
-      class="inline-flex items-center justify-center w-8 h-8 text-black hover:text-gray-700 ml-2 z-10"
-      onclick="event.stopPropagation();"
-      aria-label="日記を削除">
+            <% if (String(post.user) === String(user._id)) { %>
+              <button
+                type="button"
+                data-modal-target="deleteDiaryModal-<%= post._id %>"
+                data-modal-toggle="deleteDiaryModal-<%= post._id %>"
+                class="inline-flex items-center justify-center w-8 h-8 text-black hover:text-gray-700 ml-2 z-10"
+                onclick="event.stopPropagation();"
+                aria-label="日記を削除">
 
-      <!-- ゴミ箱アイコン（SVG） -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-trash2-icon lucide-trash-2">
+                  <path d="M10 11v6"/>
+                  <path d="M14 11v6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                  <path d="M3 6h18"/>
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
 
-
-    </button>
-  <% } %>
-</div>
-
-    <!-- タイトル -->
-    <div class="flex items-center justify-between mt-1">
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-        「<%= post.title %>」
-      </h3>
-
-<!-- 全体リンク（カード全体をクリック可能にする） -->
-<a href="/diary/<%= post._id %>?from=<%= date ? 'date' : 'list' %>"
-   class="stretched-link absolute inset-0 z-0"
-   aria-label="日記を開く: <%= post.title || '（無題）' %>"></a>     
-
-    <!-- 削除モーダル -->
-    <div id="deleteDiaryModal-<%= post._id %>" tabindex="-1" aria-hidden="true"
-         class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center
-                w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-
-      <div class="relative p-4 w-full max-w-md max-h-full">
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-
-          <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              日記を削除しますか？
-            </h3>
-            <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
-                           text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
-                           dark:hover:text-white"
-                    data-modal-hide="deleteDiaryModal-<%= post._id %>">
-              ✕
-            </button>
-          </div>
-
-          <div class="p-4 md:p-5 space-y-4">
-            <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              この操作は取り消せません。
-            </p>
-          </div>
-
-          <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
-
-            <form action="/diary_delete" method="POST" class="delete-form m-0">
-              <input type="hidden" name="postId" value="<%= post._id %>">
-              <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
-                削除する
               </button>
-            </form>
+            <% } %>
+          </div>
 
-            <button type="button"
-                    class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
-                           focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
-                           px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
-                           dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
-                           dark:focus:ring-gray-600"
-                    data-modal-hide="deleteDiaryModal-<%= post._id %>">
-              キャンセル
-            </button>
+          <!-- タイトル -->
+          <div class="mt-1">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              「<%= post.title %>」
+            </h3>
+          </div>
+
+          <!-- 全体リンク（カード全体をクリック可能にする） -->
+          <a href="/diary/<%= post._id %>?from=<%= date ? 'date' : 'list' %>"
+             class="stretched-link absolute inset-0 z-0"
+             aria-label="日記を開く: <%= post.title || '（無題）' %>"></a>
+
+          <!-- 削除モーダル -->
+          <div id="deleteDiaryModal-<%= post._id %>" tabindex="-1" aria-hidden="true"
+               class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex items-center justify-center
+                      w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+            <div class="relative p-4 w-full max-w-md max-h-full">
+              <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+
+                <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    日記を削除しますか？
+                  </h3>
+                  <button type="button"
+                          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
+                                 text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+                                 dark:hover:text-white"
+                          data-modal-hide="deleteDiaryModal-<%= post._id %>">
+                    ✕
+                  </button>
+                </div>
+
+                <div class="p-4 md:p-5 space-y-4">
+                  <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                    この操作は取り消せません。
+                  </p>
+                </div>
+
+                <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
+
+                  <form action="/diary_delete" method="POST" class="delete-form m-0">
+                    <input type="hidden" name="postId" value="<%= post._id %>">
+                    <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
+                      削除する
+                    </button>
+                  </form>
+
+                  <button type="button"
+                          class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
+                                 focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
+                                 px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
+                                 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
+                                 dark:focus:ring-gray-600"
+                          data-modal-hide="deleteDiaryModal-<%= post._id %>">
+                    キャンセル
+                  </button>
+
+                </div>
+
+              </div>
+            </div>
 
           </div>
+
         </div>
-      </div>
-    </div>
 
-  </div>
-
-</li>
+      </li>
 
     <% }) %>
+
   <% } else { %>
 
     <li class="mb-6">
@@ -165,6 +181,7 @@
   <% } %>
 
 </ol>
+<!-- 日記一覧（ここまで） -->
 
 
 
