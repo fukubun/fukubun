@@ -942,25 +942,34 @@ app.post('/tokumei_review', async (req, res) => {
 app.get('/diary', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  const date = req.query.date; // YYYY-MM-DD
+  const date = req.query.date;
 
-  // ★ 他人の公開日記だけ
   let query = {
     isPublic: true,
     user: { $ne: req.user._id }
   };
 
-  // ★ 日付指定があればその日の公開日記だけ
   if (date) {
     query.date = date;
   }
 
-  // ★ まず DB から取得（順番が重要）
   const diariesFromDb = await Diary.find(query)
     .sort({ createdAt: -1 });
 
-  // ★ time はそのまま使う（補正しない）
-  const diaries = diariesFromDb.map(d => d.toObject());
+  // ★ createdAt を JST に変換して jstTime を作る
+  const diaries = diariesFromDb.map(d => {
+    const obj = d.toObject();
+
+    const created = new Date(d.createdAt);
+    const jst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
+
+    obj.jstTime = jst.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    return obj;
+  });
 
   res.render('diary', {
     diaries,
@@ -983,10 +992,11 @@ app.get('/diary_post', (req, res) => {
 app.post('/diary_post', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  // 今日の日付（YYYY-MM-DD）を JST で作る
+  // JST の現在時刻
   const now = new Date();
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
 
+  // JST の日付（YYYY-MM-DD）
   const yyyy = jst.getFullYear();
   const mm = String(jst.getMonth() + 1).padStart(2, "0");
   const dd = String(jst.getDate()).padStart(2, "0");
@@ -1002,21 +1012,14 @@ app.post('/diary_post', async (req, res) => {
     return res.send("今日はすでに日記を投稿しています");
   }
 
-  // 公開設定
   const isPublic = req.body.isPublic === "on";
 
-  // ★ 時刻も JST に補正して保存
-  const timeStr = jst.toLocaleTimeString('ja-JP', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
+  // ★ time は保存しない
   await Diary.create({
     user: req.user._id,
     title: req.body.title,
     content: req.body.content,
     date: dateStr,
-    time: timeStr,
     isPublic
   });
 

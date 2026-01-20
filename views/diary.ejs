@@ -69,7 +69,7 @@
 <!-- 日付 + 削除アイコン（右端） -->
 <div class="flex items-center justify-between mb-1">
 
-<time><%= post.time %></time>
+<time><%= post.jstTime %></time>
 
   <% if (String(post.user) === String(user._id)) { %>
     <!-- 削除アイコンボタン（背景なし・黒） -->
