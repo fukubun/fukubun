@@ -60,6 +60,8 @@
 </div>
 <!-- ヘッダー（ここまで） -->
 
+<!-- ★ ヘッダーと一覧の間の線 -->
+<hr class="border-gray-300 dark:border-gray-600 mb-6">
 
 <!-- 日記一覧（ここから） -->
 <ol class="timeline space-y-6">
@@ -67,9 +69,9 @@
   <% if (diaries && diaries.length) { %>
     <% diaries.forEach(post => { %>
 
-      <li class="timeline-item border-b border-gray-200 dark:border-gray-700 pb-4 last:pb-0 last:border-b-0">
+      <li class="timeline-item border-b border-gray-200 dark:border-gray-700 pb-4">
 
-        <div class="card relative p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+        <div class="card relative pt-1 pr-3 pb-3 pl-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
 
           <!-- 日付 + 削除アイコン（左右分離） -->
           <div class="flex items-center justify-between mb-1">

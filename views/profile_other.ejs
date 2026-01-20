@@ -80,7 +80,13 @@
   <ol class="timeline relative">
     <% if (posts && posts.length) { %>
       <% posts.forEach(post => { %>
-        <li class="mb-6 relative">
+        
+<li class="mb-6 relative">
+
+<!-- 透明リンク（投稿全体クリックで詳細へ） -->
+  <a href="/timeline/post/<%= post.id %>?from=profile/<%= profileUser.username %>"
+   class="absolute inset-0 z-0"></a>
+
 <div class="px-4">
           <div class="flex gap-3 items-start">
             <a href="/profile/<%= post.username %>">
@@ -108,51 +114,96 @@
                 <img src="<%= post.image %>" class="w-full rounded-lg mt-3 border object-cover">
               <% } %>
 
-              <div class="flex justify-between text-gray-500 text-sm mt-3 select-none">
-                <button class="hover:text-green-500 transition-colors">リポスト</button>
+              <!-- アクションボタン -->
+<div class="flex justify-between text-gray-500 text-sm mt-3 select-none">
 
-                <button class="like-btn inline-flex items-center gap-1" data-id="<%= post.id %>">
+  <!-- いいね -->
+  <!-- いいね -->
+<button class="like-btn inline-flex items-center gap-1 relative z-10"
+        data-id="<%= post.id %>">
   <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+         viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
       <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
     </svg>
   <% } else { %>
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
       <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
     </svg>
   <% } %>
-
-  <span class="text-sm"><%= post.likes %></span>
+  <span><%= post.likes %></span>
 </button>
 
+  <!-- リポスト -->
+  <button class="hover:text-green-500 transition-colors relative z-10">
+  リポスト
+</button>
 
-                <button class="hover:text-gray-700 transition-colors">ブックマーク</button>
+  <!-- コメント -->
+  <button class="hover:text-blue-500 transition-colors relative z-10">
+    コメント (<%= Array.isArray(post.comments) ? post.comments.length : 0 %>)
+  </button>
 
-                <% if (post.username === user.username) { %>
-                  <button data-modal-target="deleteModal-<%= post.id %>" data-modal-toggle="deleteModal-<%= post.id %>" class="hover:text-red-600 transition-colors">削除</button>
+  <!-- ブックマーク -->
+  <button class="hover:text-gray-700 transition-colors relative z-10">
+    ブックマーク
+  </button>
 
-                  <!-- 削除モーダル（省略可能） -->
-                  <div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto fixed top-0 right-0 left-0 z-50 justify-center items-center w-full h-[calc(100%-1rem)] max-h-full">
-                    <div class="relative p-4 w-full max-w-md max-h-full">
-                      <div class="relative bg-white rounded-lg shadow">
-                        <div class="flex items-center justify-between p-4 rounded-t">
-                          <h3 class="text-lg font-semibold text-gray-900">投稿を削除しますか？</h3>
-                          <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="deleteModal-<%= post.id %>">✕</button>
-                        </div>
-                        <div class="p-4 space-y-4">
-                          <p class="text-base leading-relaxed text-gray-500">この操作は取り消せません。本当に削除してよろしいですか？</p>
-                        </div>
-                        <div class="flex items-center justify-end p-4 rounded-b">
-                          <form action="/delete/<%= post.id %>" method="POST">
-                            <input type="hidden" name="redirect" value="profile">
-                            <button class="hover:text-red-500 transition-colors">削除する</button>
-                          </form>
-                          <button data-modal-hide="deleteModal-<%= post.id %>" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 rounded-lg border border-gray-300 text-sm font-medium px-5 py-2.5">キャンセル</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                <% } %>
+  <!-- 削除（自分の投稿のみ） -->
+  <% if (post.username === user.username) { %>
+  <button
+    data-modal-target="deleteModal-<%= post.id %>"
+    data-modal-toggle="deleteModal-<%= post.id %>"
+    class="hover:text-red-600 transition-colors relative z-10">
+    削除
+  </button>
+<% } else { %>
+  <span class="opacity-0 pointer-events-none relative z-10">削除</span>
+<% } %>
+
+</div>
+
+<!-- 削除モーダル（既存のまま） -->
+<% if (post.username === user.username) { %>
+<div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto fixed top-0 right-0 left-0 z-50 justify-center items-center w-full h-[calc(100%-1rem)] max-h-full">
+
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-lg shadow">
+
+      <div class="flex items-center justify-between p-4 rounded-t">
+        <h3 class="text-lg font-semibold text-gray-900">投稿を削除しますか？</h3>
+        <button type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+          data-modal-hide="deleteModal-<%= post.id %>">✕</button>
+      </div>
+
+      <div class="p-4 space-y-4">
+        <p class="text-base leading-relaxed text-gray-500">
+          この操作は取り消せません。本当に削除してよろしいですか？
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end p-4 rounded-b">
+        <form action="/delete/<%= post.id %>" method="POST">
+          <input type="hidden" name="redirect" value="profile">
+          <button class="hover:text-red-500 transition-colors">削除する</button>
+        </form>
+
+        <button data-modal-hide="deleteModal-<%= post.id %>"
+          class="ms-3 text-gray-500 bg-white hover:bg-gray-100 rounded-lg border border-gray-300 text-sm font-medium px-5 py-2.5">
+          キャンセル
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<% } %>
+
 
               </div>
             </div>

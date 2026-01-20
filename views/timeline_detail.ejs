@@ -1,0 +1,189 @@
+
+
+<main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0 px-4">
+
+<!-- 戻る（黒のバツ） -->
+<a href="/<%= from ? from : 'timeline' %>"
+   class="inline-flex items-center text-black hover:text-gray-700 text-xl mb-3">
+  ✕
+</a>
+
+  <!-- 投稿ヘッダー -->
+  <div class="flex items-start gap-3">
+    <a href="/profile/<%= post.username %>" class="relative z-10">
+     <img src="<%= post.userIcon || userMap[post.username] %>" class="w-12 h-12 rounded-full object-cover">
+    </a>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-gray-900 text-lg"><%= post.user %></span>
+        <span class="text-gray-500 text-sm">@<%= post.username %></span>
+      </div>
+      <div class="text-gray-500 text-sm mt-1">
+        <%= new Date(post.time).toLocaleString("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 投稿本文 -->
+  <% const lines = String(post.message).replace(/\r/g, '').split('\n').filter(line => line.trim() !== ''); %>
+  <% if (lines.length > 0) { %>
+    <p class="text-gray-900 text-base leading-relaxed whitespace-pre-line mt-4"><%= lines.join('\n') %></p>
+  <% } %>
+
+  <!-- 投稿画像 -->
+  <% if (post.image) { %>
+    <img src="<%= post.image %>" class="w-full rounded-xl mt-4 border object-cover" alt="投稿画像">
+  <% } %>
+
+  <!-- アクション群 -->
+<div class="flex justify-between text-gray-500 text-sm mt-4 select-none items-center">
+
+ <!-- いいね -->
+  <button class="like-btn relative z-50 inline-flex items-center gap-1" data-id="<%= post.id %>" aria-label="いいね">
+    <% if (post.likedUsers && post.likedUsers.includes(user.username)) { %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+           fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+      </svg>
+    <% } else { %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>
+      </svg>
+    <% } %>
+    <span><%= post.likes %></span>
+  </button>
+
+  <!-- リポスト（文字のみ） -->
+  <button class="relative z-10 hover:text-green-500 transition-colors">
+    リポスト
+  </button>
+
+  <!-- コメント（文字のみ） -->
+  <button class="relative z-10 hover:text-blue-500 transition-colors">
+    コメント (<%= Array.isArray(post.comments) ? post.comments.length : 0 %>)
+  </button>
+
+  <!-- ブックマーク（文字のみ） -->
+  <button class="relative z-10 hover:text-gray-700 transition-colors">
+    ブックマーク
+  </button>
+
+<!-- 削除ボタン（投稿者のみ） -->
+<% if (post.username === user.username) { %>
+  <button type="button"
+          data-modal-target="deleteModal-<%= post.id %>"
+          data-modal-toggle="deleteModal-<%= post.id %>"
+          class="relative z-10 hover:text-red-600 transition-colors">
+    削除
+  </button>
+<% } else { %>
+  <span class="relative z-10 invisible pointer-events-none">削除</span>
+<% } %>
+
+</div> <!-- ← アクションボタンの閉じ -->
+
+<!-- 削除モーダル -->
+<div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true"
+  class="hidden fixed inset-0 z-50 flex justify-center items-center
+         overflow-y-auto overflow-x-hidden w-full h-[calc(100%-1rem)] max-h-full">
+
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+
+      <div class="flex items-center justify-between p-4 md:p-5 rounded-t">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          投稿を削除しますか？
+        </h3>
+        <button type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
+                 text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600
+                 dark:hover:text-white"
+          data-modal-hide="deleteModal-<%= post.id %>">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 md:p-5 space-y-4">
+        <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+          この操作は取り消せません。本当に削除してよろしいですか？
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end p-4 md:p-5 rounded-b">
+
+        <form action="/delete/<%= post.id %>" method="POST" class="delete-form m-0">
+          <!-- 戻り先を動的に -->
+          <input type="hidden" name="redirect" value="/<%= from ? from : 'timeline' %>">
+          <button type="submit"
+            class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none
+                   focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center
+                   dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-900">
+            削除する
+          </button>
+        </form>
+
+        <button data-modal-hide="deleteModal-<%= post.id %>"
+          class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none
+                 focus:ring-blue-300 rounded-lg border border-gray-300 text-sm font-medium
+                 px-5 py-2.5 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300
+                 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600
+                 dark:focus:ring-gray-600">
+          キャンセル
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+  <!-- コメント一覧 -->
+  <% if (Array.isArray(post.comments) && post.comments.length > 0) { %>
+    <div class="mt-6 border-t pt-4">
+      <% post.comments.forEach(comment => { %>
+        <div class="flex items-start gap-3 mb-4">
+          <a href="/profile/<%= comment.username %>" class="relative z-10">
+            <img src="<%= comment.userIcon || userMap?.[comment.username] || user.icon %>" class="w-10 h-10 rounded-full object-cover" alt="<%= comment.user %>のアイコン">
+          </a>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900 text-sm"><%= comment.user %></span>
+              <span class="text-gray-500 text-xs">@<%= comment.username %></span>
+              <span class="text-gray-500 text-xs">· <%= formatRelativeTime(comment.time) %></span>
+            </div>
+            <p class="text-gray-900 text-sm leading-relaxed whitespace-pre-line mt-1"><%= comment.message %></p>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".like-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const id = btn.dataset.id;
+
+      try {
+        const res = await fetch(`/like/${id}`, {
+          method: "POST",
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        const data = await res.json();
+        if (!data.html) return;
+
+        btn.innerHTML = data.html;
+
+      } catch (err) {
+        console.error("like error", err);
+      }
+    });
+  });
+});
+</script>

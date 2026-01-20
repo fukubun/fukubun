@@ -160,14 +160,47 @@ app.get('/timeline', async (req, res) => {
   }
 });
 
+// -------------------------
+// 投稿詳細ページ /timeline/post/:id
+// -------------------------
+app.get('/timeline/post/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/');
+
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).send('投稿が見つかりません');
+
+    // ★ 投稿者の最新アイコンを取得するための userMap を作る
+    const users = await User.find({}, 'username icon');
+    const userMap = {};
+    users.forEach(u => { userMap[u.username] = u.icon });
+
+    // ★ userMap を EJS に渡す
+    res.render('timeline_detail', {
+  post,
+  user: req.user,
+  userMap,
+  from: req.query.from || null
+});
+
+  } catch (err) {
+    console.error('detail error', err);
+    res.status(500).send('サーバーエラー');
+  }
+});
+
+// -------------------------
 // Post form (timeline)
+// -------------------------
 app.get('/post', (req, res) => {
   if (!req.user) return res.redirect('/');
   const from = req.query.from || "timeline";
   res.render('post', { from, user: req.user });
 });
 
-// Create post (timeline) ★ Cloudinary 対応版
+// -------------------------
+// Create post (timeline)
+// -------------------------
 app.post('/post', upload.single('image'), async (req, res) => {
   if (!req.user) return res.redirect('/');
 
@@ -180,13 +213,13 @@ app.post('/post', upload.single('image'), async (req, res) => {
     message,
     likes: 0,
     likedUsers: [],
+    comments: [],
     time: new Date()
   };
 
   try {
     if (req.file) {
-      // Cloudinary の URL がここに入る
-      postData.image = req.file.path;
+      postData.image = req.file.path; // Cloudinary URL
     }
 
     await Post.create(postData);
@@ -200,14 +233,18 @@ app.post('/post', upload.single('image'), async (req, res) => {
   }
 });
 
-// Delete post (timeline) - only owner
+// -------------------------
+// Delete post (timeline)
+// -------------------------
 app.post('/delete/:id', async (req, res) => {
   const id = req.params.id;
   let redirectTo = req.body && req.body.redirect ? String(req.body.redirect) : '/timeline';
+
   try {
     if (redirectTo === 'profile') redirectTo = '/profile';
     else if (redirectTo === 'timeline') redirectTo = '/timeline';
     if (!redirectTo.startsWith('/')) redirectTo = '/' + redirectTo;
+
     const allowed = ['/timeline', '/profile'];
     if (req.user && req.user.username) allowed.push(`/users/${req.user.username}`);
     if (!allowed.includes(redirectTo)) redirectTo = '/timeline';
@@ -215,12 +252,14 @@ app.post('/delete/:id', async (req, res) => {
     console.error('redirect normalization error', e);
     redirectTo = '/timeline';
   }
+
   if (!req.user || !req.user.username) {
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
       return res.status(401).json({ success: false, message: '認証が必要です' });
     }
     return res.redirect('/login');
   }
+
   try {
     const deleted = await Post.findOneAndDelete({ _id: id, username: req.user.username });
     if (!deleted) {
@@ -229,10 +268,13 @@ app.post('/delete/:id', async (req, res) => {
       }
       return res.status(404).send('投稿が見つかりません');
     }
+
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
       return res.json({ success: true });
     }
+
     return res.redirect(redirectTo);
+
   } catch (err) {
     console.error('delete error:', err);
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -242,13 +284,18 @@ app.post('/delete/:id', async (req, res) => {
   }
 });
 
+// -------------------------
 // Like toggle (timeline)
+// -------------------------
 app.post('/like/:id', async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "not logged in" });
+
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ error: "not found" });
+
     const username = req.user.username;
+
     if (Array.isArray(post.likedUsers) && post.likedUsers.includes(username)) {
       post.likedUsers = post.likedUsers.filter(u => u !== username);
       post.likes = Math.max(0, (post.likes || 0) - 1);
@@ -257,13 +304,18 @@ app.post('/like/:id', async (req, res) => {
       post.likedUsers.push(username);
       post.likes = (post.likes || 0) + 1;
     }
+
     await post.save();
+
     const isLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(username);
+
     const html = `${isLiked
       ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>'
       : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>'}
       <span>${post.likes}</span>`;
+
     return res.json({ html });
+
   } catch (err) {
     console.error('like error', err);
     return res.status(500).json({ error: 'failed' });
