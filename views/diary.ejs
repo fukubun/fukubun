@@ -67,12 +67,8 @@
   <div class="card relative p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
 
 <!-- 日付 + 削除アイコン（右端） -->
-<div class="flex items-center justify-between mb-1">
-  <div class="text-sm text-gray-500">
-    <%= post.jstDate %>  <!-- ← 日本語日付 -->
-  </div>
-
-<time><%= post.jstTime %></time>
+<div class="text-sm text-gray-500 mb-1">
+  <%= post.jstDate %> <%= post.jstTime %>
 </div>
 
   <% if (String(post.user) === String(user._id)) { %>
