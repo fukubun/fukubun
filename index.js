@@ -955,26 +955,18 @@ app.get('/diary', async (req, res) => {
     query.date = date;
   }
 
+  // ★ まず DB から取得（順番が重要）
   const diariesFromDb = await Diary.find(query)
     .sort({ createdAt: -1 });
 
-  const diaries = diariesFromDb.map(d => {
-    const obj = d.toObject();
-    obj.time = d.createdAt.toLocaleString("ja-JP", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-    return obj;
-  });
+  // ★ time はそのまま使う（補正しない）
+  const diaries = diariesFromDb.map(d => d.toObject());
 
   res.render('diary', {
-  diaries,
-  date,
-  user: req.user,   // ★ これを追加
-});
+    diaries,
+    date,
+    user: req.user
+  });
 });
 
 // -------------------------
@@ -1008,17 +1000,17 @@ app.post('/diary_post', async (req, res) => {
     return res.send("今日はすでに日記を投稿しています");
   }
 
-  // ★ 公開設定（チェックされていれば "on"）
+  // 公開設定
   const isPublic = req.body.isPublic === "on";
 
-  // 新規投稿
+  // ★ JST 補正を削除して、純粋にローカル時間を保存する
   await Diary.create({
     user: req.user._id,
     title: req.body.title,
     content: req.body.content,
     date: dateStr,
     time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-    isPublic   // ← ★ 追加
+    isPublic
   });
 
   res.redirect('/diary');

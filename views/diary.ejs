@@ -68,19 +68,8 @@
 
 <!-- 日付 + 削除アイコン（右端） -->
 <div class="flex items-center justify-between mb-1">
- <%
-  // time が "HH:MM" の場合
-  const [h, m] = post.time.split(":").map(Number);
 
-  // Render は UTC で動くので JST に補正
-  const jstHour = (h + 9) % 24;
-
-  const fixedTime = `${String(jstHour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-%>
-
-<time class="text-sm text-gray-500 dark:text-gray-400">
-  <%= fixedTime %>
-</time>
+<time><%= post.time %></time>
 
   <% if (String(post.user) === String(user._id)) { %>
     <!-- 削除アイコンボタン（背景なし・黒） -->
