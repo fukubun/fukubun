@@ -957,19 +957,29 @@ app.get('/diary', async (req, res) => {
     .sort({ createdAt: -1 });
 
   // ★ createdAt を JST に変換して jstTime を作る
-  const diaries = diariesFromDb.map(d => {
-    const obj = d.toObject();
+ const diaries = diariesFromDb.map(d => {
+  const obj = d.toObject();
 
-    const created = new Date(d.createdAt);
-    const jst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
+  // createdAt → JST
+  const created = new Date(d.createdAt);
+  const jst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
 
-    obj.jstTime = jst.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    return obj;
+  // ★ JST の時刻
+  obj.jstTime = jst.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
   });
+
+  // ★ JST の日本語日付（年・月・日・曜日）
+  obj.jstDate = jst.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',   // 「1月」「2月」
+    day: 'numeric',
+    weekday: 'short' // 「月」「火」「水」
+  });
+
+  return obj;
+});
 
   res.render('diary', {
     diaries,
