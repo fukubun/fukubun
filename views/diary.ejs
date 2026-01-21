@@ -75,9 +75,14 @@
 
           <!-- 日付 + 削除アイコン（左右分離） -->
           <div class="flex items-center justify-between mb-1">
-            <div class="text-sm text-gray-500">
-              <%= post.jstDate %> <%= post.jstTime %>
-            </div>
+           <div class="text-sm text-gray-500">
+  <% 
+    const d = new Date(post.date);
+    const youbi = ["日","月","火","水","木","金","土"][d.getDay()];
+    const jp = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,"0")}月${String(d.getDate()).padStart(2,"0")}日（${youbi}）`;
+  %>
+  <%= jp %>
+</div>
 
             <% if (String(post.user) === String(user._id)) { %>
               <button
@@ -188,43 +193,18 @@
 
 
 
-
-<!-- スピードダイヤル -->
-<div data-dial-init class="fixed end-6 bottom-6 group z-50">
-
-  <!-- 開いたときのメニュー -->
-  <div id="speed-dial-menu-diary" class="flex flex-col items-center hidden mb-4 space-y-3">
-
-    <!-- 新規日記投稿 -->
-    <a href="/diary_post"
-       class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
-      
-    </a>
-
-    <!-- 自分のカレンダー -->
-    <a href="/diary_my"
-       class="flex justify-center items-center w-[52px] h-[52px] bg-gray-100 text-gray-700 rounded-full border border-gray-300 shadow hover:bg-gray-200">
-      自分
-    </a>
-
-  </div>
-
-  <!-- メインボタン（開閉） -->
-  <button type="button"
-          data-dial-toggle="speed-dial-menu-diary"
-          aria-controls="speed-dial-menu-diary"
-          aria-expanded="false"
-          class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
-    <svg class="w-6 h-6 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24">
-      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M5 12h14m-7 7V5"/>
+<!-- ▼▼ diary.ejs：新規投稿ボタン ▼▼ -->
+<div class="fixed end-6 bottom-6 z-50">
+  <a href="/diary_post?from=list"
+     class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line">
+      <path d="M13 21h8"/>
+      <path d="m15 5 4 4"/>
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
     </svg>
-  </button>
-
+  </a>
 </div>
-
-
-
+<!-- ▲▲ diary.ejs：新規投稿ボタン ▲▲ -->
 
 
 

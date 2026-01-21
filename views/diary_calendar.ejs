@@ -17,9 +17,31 @@
   <path d="M4 19h16"/>
 </svg>
 
-  <span class="text-lg font-semibold">日記</span>
+  <span class="text-lg font-semibold">日記カレンダー</span>
 </div>
 
+<!-- タブ -->
+<div class="grid grid-cols-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+
+  <!-- 左：みんなのカレンダー -->
+  <a href="/diary_calendar"
+     class="text-center py-2 text-sm font-medium
+            <%= activeTab === 'all'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500' %>">
+    みんなのカレンダー
+  </a>
+
+  <!-- 右：自分のカレンダー -->
+  <a href="/diary_my"
+     class="text-center py-2 text-sm font-medium
+            <%= activeTab === 'my'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500' %>">
+    自分のカレンダー
+  </a>
+
+</div>
 <!-- 戻る + 見出し（同じヘッダー行） -->
 <div class="flex items-center justify-between mt-6 mb-6 pr-2">
 
@@ -48,9 +70,8 @@
 </main>
 
 <script>
-  // ★ サーバーから渡された日記日付
   const diaryDates = <%- JSON.stringify(diaryDates) %>;
-  console.log("diaryDates =", diaryDates); // ← デバッグ用（消してOK）
+  const diaryCountMap = <%- JSON.stringify(diaryCountMap) %>;
 
   function generateCalendar(year, month) {
     const calendar = document.getElementById("calendar");
@@ -60,7 +81,7 @@
     const monthName = date.toLocaleString("ja-JP", { month: "long" });
     const firstDay = date.getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
-   
+
     // --- ヘッダー ---
     const header = document.createElement("div");
     header.className = "flex justify-between items-center mb-4";
@@ -98,22 +119,43 @@
       const dd = String(d).padStart(2, "0");
       const dateStr = `${year}-${mm}-${dd}`;
 
+      // ★ 日付（これが消えていた）
       const dayText = document.createElement("div");
-      dayText.textContent = d;
+dayText.textContent = d;
 
-      // ★ 黒い点（●）
-      // ★ 黒い点（小さな丸）
-const dot = document.createElement("div");
+// ★ 今日なら太文字にする
+const today = new Date();
+const isToday =
+  year === today.getFullYear() &&
+  month === today.getMonth() &&
+  d === today.getDate();
 
-if (diaryDates.includes(dateStr)) {
-  dot.style.width = "7px";        // ← 小さい点
-  dot.style.height = "7px";
-  dot.style.backgroundColor = "black";
-  dot.style.borderRadius = "50%"; // ← 丸くする
-  dot.style.marginTop = "2px";    // ← 日付との間隔
+if (isToday) {
+  dayText.style.fontWeight = "bold";
 }
-      cell.appendChild(dayText);
-      cell.appendChild(dot);
+
+cell.appendChild(dayText);
+
+      // ★ 投稿数
+      const count = diaryCountMap[dateStr] || 0;
+
+     if (count > 0) {
+  const dot = document.createElement("div");
+  dot.textContent = count;
+
+  dot.style.padding = "0 6px";
+dot.style.height = "16px";
+dot.style.backgroundColor = "#e5e7eb"; // ← 優しい薄グレー
+dot.style.color = "#111";             // ← 濃いグレー文字
+dot.style.borderRadius = "8px";
+dot.style.display = "flex";
+dot.style.alignItems = "center";
+dot.style.justifyContent = "center";
+dot.style.fontSize = "10px";
+dot.style.marginTop = "2px";
+
+  cell.appendChild(dot);
+}
 
       cell.onclick = () => {
         window.location.href = `/diary?date=${dateStr}`;
@@ -135,10 +177,31 @@ if (diaryDates.includes(dateStr)) {
     };
   }
 
-  // 初期表示
   const today = new Date();
   generateCalendar(today.getFullYear(), today.getMonth());
 </script>
+
+
+
+
+
+
+<!-- ▼▼ diary_calendar.ejs：新規投稿ボタン ▼▼ -->
+<div class="fixed end-6 bottom-6 z-50">
+  <a href="/diary_post?from=calendar"
+     class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line">
+      <path d="M13 21h8"/>
+      <path d="m15 5 4 4"/>
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+    </svg>
+  </a>
+</div>
+<!-- ▲▲ diary_calendar.ejs：新規投稿ボタン ▲▲ -->
+
+
+
+
 
 <!-- 左固定サイドバー（PCのみ表示） -->
 <aside class="sm:block hidden fixed top-0 left-0 z-40 w-48 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">  

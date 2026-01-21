@@ -17,7 +17,28 @@
   <path d="M4 19h16"/>
 </svg>
 
-  <span class="text-lg font-semibold">日記</span>
+  <span class="text-lg font-semibold">日記カレンダー</span>
+</div>
+<!-- タブ -->
+<div class="grid grid-cols-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+
+  <!-- 左：みんなのカレンダー -->
+  <a href="/diary_calendar"
+     class="text-center py-2 text-sm font-medium
+            <%= activeTab === 'all'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500' %>">
+    みんなのカレンダー
+  </a>
+
+  <!-- 右：自分のカレンダー -->
+  <a href="/diary_my"
+     class="text-center py-2 text-sm font-medium
+            <%= activeTab === 'my'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500' %>">
+    自分のカレンダー
+  </a>
 </div>
 
 <!-- 戻る + 見出し（同じヘッダー行） -->
@@ -102,19 +123,19 @@
       const dayText = document.createElement("div");
       dayText.textContent = d;
 
-      // ★ 黒い点（●）
-      // ★ 黒い点（小さな丸）
+     // ★ グレーの点（小さな丸）
 const dot = document.createElement("div");
 
 if (diaryDates.includes(dateStr)) {
-  dot.style.width = "7px";        // ← 小さい点
+  dot.style.width = "7px";        // 小さい点
   dot.style.height = "7px";
-  dot.style.backgroundColor = "black";
-  dot.style.borderRadius = "50%"; // ← 丸くする
-  dot.style.marginTop = "2px";    // ← 日付との間隔
+  dot.style.backgroundColor = "#9ca3af"; // ← グレー（Tailwind gray-400 相当）
+  dot.style.borderRadius = "50%"; // 丸くする
+  dot.style.marginTop = "2px";    // 日付との間隔
 }
-      cell.appendChild(dayText);
-      cell.appendChild(dot);
+
+cell.appendChild(dayText);
+cell.appendChild(dot);
 
       cell.onclick = () => {
   const postId = diaryMap[dateStr];
@@ -153,6 +174,25 @@ const diaryMap = <%- JSON.stringify(diaryMap) %>;
   const today = new Date();
   generateCalendar(today.getFullYear(), today.getMonth());
 </script>
+
+
+
+<!-- ▼▼ diary_my.ejs：新規投稿ボタン ▼▼ -->
+<div class="fixed end-6 bottom-6 z-50">
+  <a href="/diary_post?from=my"
+     class="flex items-center justify-center text-white bg-blue-600 rounded-full w-14 h-14 hover:bg-blue-700 shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line">
+      <path d="M13 21h8"/>
+      <path d="m15 5 4 4"/>
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+    </svg>
+  </a>
+</div>
+<!-- ▲▲ diary_my.ejs：新規投稿ボタン ▲▲ -->
+
+
+
+
 
 <!-- 左固定サイドバー（PCのみ表示） -->
 <aside class="sm:block hidden fixed top-0 left-0 z-40 w-48 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">  

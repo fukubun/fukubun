@@ -1,9 +1,4 @@
-
-<main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0">
-
-  <!-- 戻る + 編集/削除（横並び） -->
-  <div class="flex items-center justify-between mb-4">
-
+<div class="px-3 mt-3">
     <!-- 戻るリンク -->
     <a href="<%= 
       from === 'calendar' ? '/diary_calendar' :
@@ -11,13 +6,12 @@
       from === 'date'     ? `/diary?date=${diary.date}` :
       '/diary'
     %>"
-    class="text-body hover:text-heading text-sm flex items-center gap-1">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 18l-6-6 6-6"/>
-      </svg>
-      戻る
+     class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
     </a>
+</div>
+<main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0 px-4">
+
 
     <!-- 編集・削除ボタン（自分の投稿のときだけ表示） -->
 <% if (String(diary.user) === String(user._id)) { %>
@@ -101,18 +95,38 @@
 
   </div>
 
-<main class="max-w-2xl mx-auto p-6">
-
-
+<div class="mt-3">
   <!-- タイトル -->
   <h1 class="text-2xl font-bold text-gray-900 mb-1">
     <%= diary.title || "（無題）" %>
   </h1>
+</div>
+  
+<!-- 投稿日時 -->
+  <%
+  const created = new Date(diary.createdAt);
+  const updated = new Date(diary.updatedAt);
 
-  <!-- 投稿日時 -->
-  <p class="text-sm text-gray-500 mb-6">
-    <%= diary.time %>
-  </p>
+  const youbi = ["日","月","火","水","木","金","土"];
+
+  function formatJP(date) {
+    return `${date.getFullYear()}年${String(date.getMonth()+1).padStart(2,"0")}月${String(date.getDate()).padStart(2,"0")}日(${youbi[date.getDay()]})`;
+  }
+
+  const isEdited = updated.getTime() !== created.getTime();
+%>
+
+<p class="text-sm text-gray-500 mb-6">
+  <% if (isEdited) { %>
+    編集日：<%= formatJP(updated) %>
+  <% } else { %>
+    記入日：<%= formatJP(created) %>
+  <% } %>
+
+<class="text-sm text-gray-500 mb-6">
+  公開設定：
+  <%= diary.isPublic ? "公開" : "非公開" %>
+</p>
 
   <!-- 本文 -->
   <div class="prose whitespace-pre-wrap text-gray-800">

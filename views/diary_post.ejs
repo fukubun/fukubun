@@ -1,17 +1,19 @@
 <div class="p-4 max-w-3xl mx-auto">
 
 <!-- 戻るリンク（from に応じて戻る） -->
-  <a href="<%= 
-    '/diary'
-  %>"
-  class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
-      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M15 18l-6-6 6-6"/>
+<a href="<%=
+  typeof from !== 'undefined' && from === 'list'      ? '/diary' :
+  typeof from !== 'undefined' && from === 'calendar'  ? '/diary_calendar' :
+  typeof from !== 'undefined' && from === 'my'        ? '/diary_my' :
+  '/diary'
+%>"
+class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 18l-6-6 6-6"/>
     </svg>
-    戻る
-  </a>
-
+  戻る
+</a>
 
   <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
     日記を書く
@@ -32,6 +34,23 @@
         placeholder="今日のまとめや一言タイトルを入力…">
     </div>
 
+<!-- 日付（Flowbite Datepicker 和風表示 + 初期値＝今日） -->
+<div class="relative">
+  <label for="date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+    日付
+  </label>
+
+  <input id="date" name="date" type="text"
+    class="w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg
+           dark:bg-gray-700 dark:border-gray-600 dark:text-white cursor-pointer"
+    readonly>
+
+  <!-- カレンダー本体（ポップアップ） -->
+  <div id="datePicker"
+       class="absolute left-0 mt-2 bg-white dark:bg-gray-800 p-4 rounded-lg shadow
+              border border-gray-200 dark:border-gray-700 hidden z-50 w-72">
+  </div>
+</div>
     <!-- 本文 -->
     <div>
       <label for="content" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -43,6 +62,11 @@
                dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
                dark:focus:ring-blue-500 dark:focus:border-blue-500"
         placeholder="今日の出来事や気持ちを書いてください…"></textarea>
+
+<% if (error) { %>
+  <p class="text-red-500 text-sm mt-2"><%= error %></p>
+<% } %>
+
     </div>
 
 <div class="flex items-center gap-2 mt-4">
@@ -64,3 +88,133 @@
   </form>
 
 </div>
+
+<script>
+  const dateInput = document.getElementById("date");
+  const datePicker = document.getElementById("datePicker");
+
+  // 今日を初期値にする
+  const today = new Date();
+  dateInput.value =
+  `${today.getFullYear()}年${String(today.getMonth()+1).padStart(2,"0")}月${String(today.getDate()).padStart(2,"0")}日`;
+
+  // カレンダー生成
+  function generatePicker(year, month) {
+    datePicker.innerHTML = "";
+
+    const date = new Date(year, month, 1);
+    const monthName = date.toLocaleString("ja-JP", { month: "long" });
+    const firstDay = date.getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    // ヘッダー
+    const header = document.createElement("div");
+    header.className = "flex justify-between items-center mb-2";
+    header.innerHTML = `
+      <button id="prev" class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">←</button>
+      <div class="font-bold">${year}年 ${monthName}</div>
+      <button id="next" class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">→</button>
+    `;
+    datePicker.appendChild(header);
+
+    // 曜日
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    const weekRow = document.createElement("div");
+    weekRow.className = "grid grid-cols-7 text-center font-bold mb-1";
+    weekdays.forEach(d => {
+      const cell = document.createElement("div");
+      cell.textContent = d;
+      weekRow.appendChild(cell);
+    });
+    datePicker.appendChild(weekRow);
+
+    // 日付グリッド
+    const grid = document.createElement("div");
+    grid.className = "grid grid-cols-7 text-center gap-y-1";
+
+    // 空白
+    for (let i = 0; i < firstDay; i++) {
+      grid.appendChild(document.createElement("div"));
+    }
+
+    // 日付
+    for (let d = 1; d <= lastDate; d++) {
+  const cell = document.createElement("div");
+  cell.className = "py-1 rounded text-gray-900 dark:text-white";
+
+  // ローカル時間で日付を作る（UTCズレ対策）
+  const thisDate = new Date(year, month, d);
+
+  // 今日（ローカル）
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  // 今日なら Flowbite 風に青くする（控えめな青 + 黒文字 + 少し小さめ）
+if (
+  thisDate.getFullYear() === todayDate.getFullYear() &&
+  thisDate.getMonth() === todayDate.getMonth() &&
+  thisDate.getDate() === todayDate.getDate()
+) {
+  cell.classList.add(
+    "bg-blue-600",   // ← 青すぎない淡い青
+    "text-white",    // ← 黒文字
+    "font-bold",
+    "rounded-full",          // ← 丸の範囲を少し狭める（最小の調整）
+  );
+}
+
+  // 未来の日付は無効化
+  if (thisDate > todayDate) {
+    cell.classList.add("text-gray-400", "cursor-not-allowed");
+    cell.textContent = d;
+    grid.appendChild(cell);
+    continue;
+  }
+
+  // 選択可能な日付
+  cell.classList.add("cursor-pointer", "hover:bg-blue-100");
+  cell.textContent = d;
+
+  cell.onclick = () => {
+    const mm = String(month + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    dateInput.value = `${year}年${mm}月${dd}日`;
+    datePicker.classList.add("hidden");
+  };
+
+  grid.appendChild(cell);
+}
+
+    datePicker.appendChild(grid);
+
+    // 前後月
+    document.getElementById("prev").onclick = () => {
+      const newDate = new Date(year, month - 1, 1);
+      generatePicker(newDate.getFullYear(), newDate.getMonth());
+    };
+    document.getElementById("next").onclick = () => {
+      const newDate = new Date(year, month + 1, 1);
+      generatePicker(newDate.getFullYear(), newDate.getMonth());
+    };
+  }
+
+  // 初期表示
+  generatePicker(today.getFullYear(), today.getMonth());
+
+  // 入力欄クリックでカレンダー表示
+  dateInput.onclick = () => {
+    datePicker.classList.toggle("hidden");
+  };
+
+ // カレンダー内部のクリックは外側に伝えない（これが決定打）
+datePicker.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+// 外側クリックで閉じる
+document.addEventListener("click", (e) => {
+  if (e.target !== dateInput) {
+    datePicker.classList.add("hidden");
+  }
+});
+</script>

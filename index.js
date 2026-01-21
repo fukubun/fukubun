@@ -997,13 +997,12 @@ app.get('/diary', async (req, res) => {
   const date = req.query.date;
 
   let query = {
-    isPublic: true,
-    user: { $ne: req.user._id }
-  };
+  isPublic: true   // ← 自分の投稿も含まれる
+};
 
-  if (date) {
-    query.date = date;
-  }
+if (date) {
+  query.date = date;
+}
 
   const diariesFromDb = await Diary.find(query)
     .sort({ createdAt: -1 });
@@ -1045,7 +1044,14 @@ app.get('/diary', async (req, res) => {
 // -------------------------
 app.get('/diary_post', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  res.render('diary_post');
+  res.render('diary_post', {
+    error: null,
+    title: "",
+    content: "",
+    date: "",
+    isPublic: false,
+    from: req.query.from || null   // ★ これを追加
+  });
 });
 
 // -------------------------
@@ -1054,35 +1060,47 @@ app.get('/diary_post', (req, res) => {
 app.post('/diary_post', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  // JST の現在時刻
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const { title, content, date, isPublic } = req.body;
 
-  // JST の日付（YYYY-MM-DD）
-  const yyyy = jst.getFullYear();
-  const mm = String(jst.getMonth() + 1).padStart(2, "0");
-  const dd = String(jst.getDate()).padStart(2, "0");
-  const dateStr = `${yyyy}-${mm}-${dd}`;
+  // ★ 本文が空ならエラー返す
+  if (!content || content.trim() === "") {
+    return res.render("diary_post", {
+      error: "本文を入力してください。",
+      title,
+      content,
+      date,
+      isPublic: isPublic === "on"
+    });
+  }
 
-  // 今日の日記がすでにあるかチェック
+  // ★ 日本語 → YYYY-MM-DD に変換
+  const isoDate = date
+    .replace("年", "-")
+    .replace("月", "-")
+    .replace("日", "");
+
+  // ★ その日付の日記がすでにあるかチェック
   const exists = await Diary.findOne({
     user: req.user._id,
-    date: dateStr
+    date: isoDate
   });
 
   if (exists) {
-    return res.send("今日はすでに日記を投稿しています");
+    return res.render("diary_post", {
+      error: "その日付の日記はすでに投稿されています。",
+      title,
+      content,
+      date,
+      isPublic: isPublic === "on"
+    });
   }
 
-  const isPublic = req.body.isPublic === "on";
-
-  // ★ time は保存しない
   await Diary.create({
     user: req.user._id,
-    title: req.body.title,
-    content: req.body.content,
-    date: dateStr,
-    isPublic
+    title,
+    content,
+    date: isoDate,
+    isPublic: isPublic === "on"
   });
 
   res.redirect('/diary');
@@ -1094,18 +1112,30 @@ app.post('/diary_post', async (req, res) => {
 app.get('/diary_calendar', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  const date = req.query.date || null;   // ★ 追加（揃える）
+  const date = req.query.date || null;
 
   // ★ 公開日記だけ取得
   const diaries = await Diary.find({ isPublic: true }).select("date");
 
-  // ★ すでに YYYY-MM-DD なのでそのまま使える
-  const diaryDates = diaries.map(d => d.date);
+  // ★ 投稿数マップを作る
+  const diaryCountMap = {};   // ← 日付ごとの投稿数
+  const diaryDates = [];
+
+  diaries.forEach(d => {
+    if (!d.date) return;
+
+    const key = d.date; // すでに YYYY-MM-DD
+
+    diaryCountMap[key] = (diaryCountMap[key] || 0) + 1;
+    diaryDates.push(key);
+  });
 
   res.render("diary_calendar", {
     diaryDates,
-    date,        // ★ 追加
-    user: req.user   // ★ 追加
+    diaryCountMap,   // ← ★ 追加（これが重要）
+    date,
+    user: req.user,
+    activeTab: "all"
   });
 });
 
@@ -1172,11 +1202,15 @@ app.get('/diary_edit/:id', async (req, res) => {
 app.post('/diary_edit', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  const { postId, title, content } = req.body;
+  const { postId, title, content, isPublic } = req.body;
 
   await Diary.updateOne(
     { _id: postId, user: req.user._id },
-    { title, content }
+    { 
+      title,
+      content,
+      isPublic: isPublic === "on"   // ← ★ これが超重要
+    }
   );
 
   res.redirect(`/diary/${postId}`);
@@ -1206,13 +1240,14 @@ app.get('/diary_my', async (req, res) => {
     diaryDates.push(key);
   });
 
-  res.render('diary_my', {
-    diaries,
-    diaryDates,
-    diaryMap,
-    date,          // ★ これでエラー消える
-    user: req.user
-  });
+ res.render('diary_my', {
+  diaries,
+  diaryDates,
+  diaryMap,
+  date,
+  user: req.user,
+  activeTab: "my"   // ★ 追加
+});
 });
 
 // -------------------------
