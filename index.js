@@ -346,16 +346,23 @@ app.post('/profile/edit', upload.single('icon'), async (req, res) => {
   const updateData = { name, bio };
 
   if (resetIcon === "true") {
-    // 初期アイコンに戻す
     updateData.icon = "/images/default_icon.svg";
-
   } else if (req.file) {
-    // Cloudinary の URL がここに入る
-    updateData.icon = req.file.path;
+    updateData.icon = req.file.path; // Cloudinary URL
   }
 
-  await User.updateOne({ _id: req.user._id }, updateData);
-  res.redirect('/profile');
+  // DB 更新
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    updateData,
+    { new: true }
+  );
+
+  // ★ セッションの user を最新化（これが超重要）
+  req.login(updatedUser, err => {
+    if (err) console.log(err);
+    return res.redirect('/profile');
+  });
 });
 
 app.get('/profile/:username', async (req, res) => {
@@ -988,48 +995,122 @@ app.post('/tokumei_review', async (req, res) => {
 });
 
 
+// -------------------------
+// diary（みんなの日記一覧）
+// -------------------------
 app.get('/diary', async (req, res) => {
   if (!req.user) return res.redirect('/login');
-
-  const freshUser = await User.findById(req.user._id);  // ★ 追加
 
   const date = req.query.date;
 
   let query = {
-    isPublic: true
-  };
+  isPublic: true   // ← 自分の投稿も含まれる
+};
 
-  if (date) {
-    query.date = date;
-  }
+if (date) {
+  query.date = date;
+}
 
-  const diariesFromDb = await Diary.find(query).sort({ createdAt: -1 });
+  const diariesFromDb = await Diary.find(query)
+    .sort({ createdAt: -1 });
 
-  const diaries = diariesFromDb.map(d => {
-    const obj = d.toObject();
-    const created = new Date(d.createdAt);
-    const jst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
+  // ★ createdAt を JST に変換して jstTime を作る
+ const diaries = diariesFromDb.map(d => {
+  const obj = d.toObject();
 
-    obj.jstTime = jst.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // createdAt → JST
+  const created = new Date(d.createdAt);
+  const jst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
 
-    obj.jstDate = jst.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short'
-    });
-
-    return obj;
+  // ★ JST の時刻
+  obj.jstTime = jst.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
   });
+
+  // ★ JST の日本語日付（年・月・日・曜日）
+  obj.jstDate = jst.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',   // 「1月」「2月」
+    day: 'numeric',
+    weekday: 'short' // 「月」「火」「水」
+  });
+
+  return obj;
+});
 
   res.render('diary', {
     diaries,
     date,
-    user: freshUser   // ★ 最新の user を渡す
+    user: req.user
   });
+});
+
+// -------------------------
+// diary_post（新規投稿ページ）
+// -------------------------
+app.get('/diary_post', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  res.render('diary_post', {
+    error: null,
+    title: "",
+    content: "",
+    date: "",
+    isPublic: false,
+    from: req.query.from || null   // ★ これを追加
+  });
+});
+
+// -------------------------
+// diary_post（新規投稿処理）
+// -------------------------
+app.post('/diary_post', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+
+  const { title, content, date, isPublic } = req.body;
+
+  // ★ 本文が空ならエラー返す
+  if (!content || content.trim() === "") {
+    return res.render("diary_post", {
+      error: "本文を入力してください。",
+      title,
+      content,
+      date,
+      isPublic: isPublic === "on"
+    });
+  }
+
+  // ★ 日本語 → YYYY-MM-DD に変換
+  const isoDate = date
+    .replace("年", "-")
+    .replace("月", "-")
+    .replace("日", "");
+
+  // ★ その日付の日記がすでにあるかチェック
+  const exists = await Diary.findOne({
+    user: req.user._id,
+    date: isoDate
+  });
+
+  if (exists) {
+    return res.render("diary_post", {
+      error: "その日付の日記はすでに投稿されています。",
+      title,
+      content,
+      date,
+      isPublic: isPublic === "on"
+    });
+  }
+
+  await Diary.create({
+    user: req.user._id,
+    title,
+    content,
+    date: isoDate,
+    isPublic: isPublic === "on"
+  });
+
+  res.redirect('/diary');
 });
 
 // -------------------------
