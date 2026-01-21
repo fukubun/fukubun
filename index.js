@@ -1049,15 +1049,21 @@ if (date) {
 // -------------------------
 // diary_post（新規投稿ページ）
 // -------------------------
-app.get('/diary_post', (req, res) => {
+app.get('/diary_post', async (req, res) => {
   if (!req.user) return res.redirect('/login');
+
+  // ★ そのユーザーが書いた日記の日付一覧を取得
+  const diaries = await Diary.find({ user: req.user._id });
+  const diaryDates = diaries.map(d => d.date);  // "2025-01-20" 形式
+
   res.render('diary_post', {
     error: null,
     title: "",
     content: "",
     date: "",
     isPublic: false,
-    from: req.query.from || null   // ★ これを追加
+    from: req.query.from || null,
+    diaryDates   // ★ これを追加
   });
 });
 
@@ -1067,7 +1073,7 @@ app.get('/diary_post', (req, res) => {
 app.post('/diary_post', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  const { title, content, date, isPublic } = req.body;
+  const { title, content, date, isPublic, from } = req.body;  // ★ from を追加
 
   // ★ 本文が空ならエラー返す
   if (!content || content.trim() === "") {
@@ -1076,7 +1082,8 @@ app.post('/diary_post', async (req, res) => {
       title,
       content,
       date,
-      isPublic: isPublic === "on"
+      isPublic: isPublic === "on",
+      from
     });
   }
 
@@ -1098,7 +1105,8 @@ app.post('/diary_post', async (req, res) => {
       title,
       content,
       date,
-      isPublic: isPublic === "on"
+      isPublic: isPublic === "on",
+      from
     });
   }
 
@@ -1110,6 +1118,12 @@ app.post('/diary_post', async (req, res) => {
     isPublic: isPublic === "on"
   });
 
+  // ★ 投稿後の導線を3つに分ける
+  if (from === "list") return res.redirect("/diary");
+  if (from === "calendar") return res.redirect("/diary_calendar");
+  if (from === "my") return res.redirect("/diary_my");
+
+  // デフォルト
   res.redirect('/diary');
 });
 
@@ -1152,11 +1166,19 @@ app.get('/diary_calendar', async (req, res) => {
 app.post('/diary_delete', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
+  const { postId, from } = req.body;   // ★ from を受け取る
+
   await Diary.deleteOne({
-    _id: req.body.postId,
-    user: req.user._id   // ★ 本人の投稿だけ削除
+    _id: postId,
+    user: req.user._id
   });
 
+  // ★ 削除後の導線を分岐
+  if (from === "calendar") return res.redirect("/diary_calendar");
+  if (from === "my")       return res.redirect("/diary_my");
+  if (from === "date")     return res.redirect(`/diary?date=${req.body.date}`);
+
+  // デフォルト（一覧）
   res.redirect('/diary');
 });
 
@@ -1200,7 +1222,15 @@ app.get('/diary_edit/:id', async (req, res) => {
 
   if (!diary) return res.redirect('/diary');
 
-  res.render("diary_edit", { diary });
+  // ★ このユーザーが書いた日記の日付一覧を取得
+  const diaries = await Diary.find({ user: req.user._id });
+  const diaryDates = diaries.map(d => d.date);  // "2025-01-20" 形式
+
+ res.render("diary_edit", {
+  diary,
+  diaryDates,
+  from: req.query.from || null
+});
 });
 
 // -------------------------
@@ -1209,14 +1239,25 @@ app.get('/diary_edit/:id', async (req, res) => {
 app.post('/diary_edit', async (req, res) => {
   if (!req.user) return res.redirect('/login');
 
-  const { postId, title, content, isPublic } = req.body;
+const { postId, title, content, isPublic, date, from } = req.body;
+
+if (from === "calendar") return res.redirect(`/diary/${postId}?from=calendar`);
+if (from === "my")       return res.redirect(`/diary/${postId}?from=my`);
+if (from === "date")     return res.redirect(`/diary/${postId}?from=date`);
+
+ // ★ 和風 → YYYY-MM-DD に変換
+  const isoDate = date
+    .replace("年", "-")
+    .replace("月", "-")
+    .replace("日", "");
 
   await Diary.updateOne(
     { _id: postId, user: req.user._id },
     { 
       title,
       content,
-      isPublic: isPublic === "on"   // ← ★ これが超重要
+      isPublic: isPublic === "on",
+      date: isoDate   // ← ★ これが今回の本命
     }
   );
 

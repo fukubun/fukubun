@@ -121,7 +121,16 @@
       const dateStr = `${year}-${mm}-${dd}`;
 
       const dayText = document.createElement("div");
-      dayText.textContent = d;
+dayText.textContent = d;
+
+// ★ 今日なら太文字にする
+if (
+  year === today.getFullYear() &&
+  month === today.getMonth() &&
+  d === today.getDate()
+) {
+  dayText.classList.add("font-bold");
+}
 
      // ★ グレーの点（小さな丸）
 const dot = document.createElement("div");

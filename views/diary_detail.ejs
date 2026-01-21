@@ -19,7 +19,7 @@
   <div class="flex items-center gap-3">
 
     <!-- 編集 -->
-    <a href="/diary_edit/<%= diary._id %>"
+    <a href="/diary_edit/<%= diary._id %>?from=<%= from %>"
        class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition shadow">
       編集
     </a>
@@ -70,11 +70,12 @@
       <div class="flex items-center justify-end p-4 md:p-5 rounded-b gap-3">
 
         <form action="/diary_delete" method="POST" class="delete-form m-0">
-          <input type="hidden" name="postId" value="<%= diary._id %>">
-          <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
-            削除する
-          </button>
-        </form>
+  <input type="hidden" name="postId" value="<%= diary._id %>">
+  <input type="hidden" name="from" value="<%= from || '' %>">
+  <button type="submit" class="hover:text-red-500 transition-colors px-4 py-2">
+    削除する
+  </button>
+</form>
 
         <button type="button"
                 class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none

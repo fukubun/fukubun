@@ -77,6 +77,8 @@ class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
   </label>
 </div>
 
+<input type="hidden" name="from" value="<%= from || '' %>">
+
     <!-- 投稿ボタン -->
     <button type="submit"
       class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg
@@ -92,11 +94,33 @@ class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
 <script>
   const dateInput = document.getElementById("date");
   const datePicker = document.getElementById("datePicker");
+  const diaryDates = <%- JSON.stringify(diaryDates) %>;
 
-  // 今日を初期値にする
-  const today = new Date();
-  dateInput.value =
-  `${today.getFullYear()}年${String(today.getMonth()+1).padStart(2,"0")}月${String(today.getDate()).padStart(2,"0")}日`;
+  // ★ 今日から一番近い空いている日を探す
+function findNearestAvailableDate() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+
+  while (true) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const iso = `${y}-${m}-${day}`;
+
+    // ★ まだ書いていない日ならこれを初期値にする
+    if (!diaryDates.includes(iso)) {
+      return d;
+    }
+
+    // ★ 1日前へ
+    d.setDate(d.getDate() - 1);
+  }
+}
+
+// ★ 初期値を「最も近い空き日」にする
+const initial = findNearestAvailableDate();
+dateInput.value =
+  `${initial.getFullYear()}年${String(initial.getMonth()+1).padStart(2,"0")}月${String(initial.getDate()).padStart(2,"0")}日`;
 
   // カレンダー生成
   function generatePicker(year, month) {
@@ -156,10 +180,12 @@ if (
   thisDate.getDate() === todayDate.getDate()
 ) {
   cell.classList.add(
-    "bg-blue-600",   // ← 青すぎない淡い青
-    "text-white",    // ← 黒文字
+    "bg-gray-300",
+    "dark:bg-gray-600",
+    "text-gray-900",
+    "dark:text-white",
     "font-bold",
-    "rounded-full",          // ← 丸の範囲を少し狭める（最小の調整）
+    "rounded-full"
   );
 }
 
@@ -170,6 +196,18 @@ if (
     grid.appendChild(cell);
     continue;
   }
+
+// ★ 既に書いている日付は無効化
+const mm = String(month + 1).padStart(2, "0");
+const dd = String(d).padStart(2, "0");
+const dateStr = `${year}-${mm}-${dd}`;
+
+if (diaryDates.includes(dateStr)) {
+  cell.classList.add("text-gray-400", "cursor-not-allowed");
+  cell.textContent = d;
+  grid.appendChild(cell);
+  continue;
+}
 
   // 選択可能な日付
   cell.classList.add("cursor-pointer", "hover:bg-blue-100");
@@ -199,7 +237,7 @@ if (
   }
 
   // 初期表示
-  generatePicker(today.getFullYear(), today.getMonth());
+  generatePicker(initial.getFullYear(), initial.getMonth());
 
   // 入力欄クリックでカレンダー表示
   dateInput.onclick = () => {
