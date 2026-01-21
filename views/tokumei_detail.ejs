@@ -1,19 +1,17 @@
 <main class="pl-0 sm:pl-16 max-w-3xl mx-auto p-0 flex-1 min-w-0 px-4">
 
+<div class="mt-3">
 <a href="<%=
-  from === 'review' ? '/tokumei_review' :
-  from === 'tokumei_novel' ? '/tokumei_novel' :
-  from === 'tokumei_save' ? '/tokumei_save' :
-  from === 'tokumei_log' ? '/tokumei_log' :
-  '/tokumei'
-%>"
-class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
-  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-      d="M15 19l-7-7 7-7" />
-  </svg>
-  戻る
-</a>
+    from === 'review' ? '/tokumei_review' :
+    from === 'tokumei_novel' ? '/tokumei_novel' :
+    from === 'tokumei_save' ? '/tokumei_save' :
+    from === 'tokumei_log' ? '/tokumei_log' :
+    '/tokumei_novel'
+  %>"
+  class="text-body hover:text-heading text-sm flex items-center gap-1 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  </a>
+</div>
 
   <!-- タイトル -->
   <h1 class="text-2xl font-bold text-gray-900 mb-4">
