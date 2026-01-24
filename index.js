@@ -145,15 +145,29 @@ app.get('/timeline', async (req, res) => {
   if (!req.user) return res.redirect('/');
   try {
     const rawPosts = await Post.find({ username: { $ne: null } }).sort({ time: -1 });
+
     const formattedPosts = rawPosts.map(p => ({
       ...p._doc,
       id: p._id.toString(),
-      time: formatRelativeTime(p.time)
+      time: formatRelativeTime(p.time),
+
+      // ★ 追加：この投稿に自分がコメント済みかどうか
+      alreadyCommented: Array.isArray(p.comments)
+        ? p.comments.some(c => c.username === req.user.username)
+        : false
     }));
+
     const users = await User.find({}, 'username icon');
     const userMap = {};
     users.forEach(u => { userMap[u.username] = u.icon; });
-    res.render('timeline', { posts: formattedPosts, user: req.user, userMap });
+
+    res.render('timeline', { 
+      posts: formattedPosts, 
+      user: req.user, 
+      userMap,
+      msg: req.query.msg || null
+    });
+
   } catch (err) {
     console.error('timeline list error', err);
     res.status(500).send('サーバーエラー');
@@ -163,25 +177,44 @@ app.get('/timeline', async (req, res) => {
 // -------------------------
 // 投稿詳細ページ /timeline/post/:id
 // -------------------------
+function formatRelativeTime(date){
+  const d = new Date(date);
+  const diff = Date.now() - d.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return 'たった今';
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}分前`;
+  const hour = Math.floor(min / 60);
+  if (hour < 24) return `${hour}時間前`;
+  const day = Math.floor(hour / 24);
+  if (day < 7) return `${day}日前`;
+  return d.toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
+}
+
 app.get('/timeline/post/:id', async (req, res) => {
   if (!req.user) return res.redirect('/');
 
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id).lean();
     if (!post) return res.status(404).send('投稿が見つかりません');
 
-    // ★ 投稿者の最新アイコンを取得するための userMap を作る
     const users = await User.find({}, 'username icon');
     const userMap = {};
     users.forEach(u => { userMap[u.username] = u.icon });
 
-    // ★ userMap を EJS に渡す
+    // ★ 追加：この投稿に自分がコメント済みかどうか
+    const alreadyCommented =
+      Array.isArray(post.comments) &&
+      post.comments.some(c => c.username === req.user.username);
+
     res.render('timeline_detail', {
-  post,
-  user: req.user,
-  userMap,
-  from: req.query.from || null
-});
+      post,
+      user: req.user,
+      userMap,
+      from: req.query.from || null,
+      formatRelativeTime,
+      alreadyCommented   // ← ★ これがないと EJS が死ぬ
+    });
 
   } catch (err) {
     console.error('detail error', err);
@@ -285,6 +318,76 @@ app.post('/delete/:id', async (req, res) => {
 });
 
 // -------------------------
+// コメント投稿（1人1回制限）
+// -------------------------
+app.post('/comment/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+
+  const postId = req.params.id;
+  const redirect = req.body.redirect || `/timeline/post/${postId}`;
+
+  const message = (req.body.message || "").trimStart();
+
+  // 空コメントは拒否
+  if (!message) {
+    return res.redirect(redirect);
+  }
+
+  // ★ 1人1回制限チェック
+  const alreadyCommented = await Post.exists({
+    _id: postId,
+    "comments.username": req.user.username
+  });
+
+  if (alreadyCommented) {
+    return res.redirect(redirect);
+  }
+
+  // コメントを追加
+  await Post.updateOne(
+    { _id: postId },
+    {
+      $push: {
+        comments: {
+          user: req.user.name,
+          username: req.user.username,
+          userIcon: req.user.icon,
+          message,
+          time: new Date()
+        }
+      }
+    }
+  );
+
+  res.redirect(redirect);
+});
+
+// -------------------------
+// コメント削除（自分のコメントのみ）
+// -------------------------
+app.post('/comment/delete/:postId/:commentId', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+
+  const { postId, commentId } = req.params;
+
+  // 自分のコメントだけ削除できるように username を条件に追加
+  await Post.updateOne(
+    { _id: postId },
+    {
+      $pull: {
+        comments: {
+          _id: commentId,
+          username: req.user.username
+        }
+      }
+    }
+  );
+
+  // 削除後も投稿詳細ページへ戻る
+  res.redirect(`/timeline/post/${postId}`);
+});
+
+// -------------------------
 // Like toggle (timeline)
 // -------------------------
 app.post('/like/:id', async (req, res) => {
@@ -323,17 +426,39 @@ app.post('/like/:id', async (req, res) => {
 });
 
 // -------------------------
-// Profile & follow
+// Profile (my page)
 // -------------------------
 app.get('/profile', async (req, res) => {
   if (!req.user) return res.redirect('/');
+
   const rawPosts = await Post.find({ username: req.user.username }).sort({ time: -1 });
-  const myPosts = rawPosts.map(p => ({ ...p._doc, id: p._id.toString(), time: formatProfileTime(p.time) }));
-  const followingCount = Array.isArray(req.user.following) ? req.user.following.length : 0;
+  const myPosts = rawPosts.map(p => ({
+    ...p._doc,
+    id: p._id.toString(),
+    time: formatProfileTime(p.time)
+  }));
+
+  const followingCount = req.user.following?.length || 0;
   const followerCount = await User.countDocuments({ following: req.user.username });
-  res.render('profile', { user: req.user, posts: myPosts, followingCount, followerCount });
+
+  // ★ from / back を受け取る（戻るボタン用）
+  const from = req.query.from || null;
+  const back = req.query.back || null;
+
+  res.render('profile', {
+    user: req.user,
+    posts: myPosts,
+    followingCount,
+    followerCount,
+    from,
+    back
+  });
 });
 
+
+// -------------------------
+// Profile edit
+// -------------------------
 app.get('/profile/edit', (req, res) => {
   if (!req.user) return res.redirect('/');
   res.render('profile_edit', { user: req.user });
@@ -351,53 +476,77 @@ app.post('/profile/edit', upload.single('icon'), async (req, res) => {
     updateData.icon = req.file.path; // Cloudinary URL
   }
 
-  // DB 更新
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
-    updateData,
-    { new: true }
-  );
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, { new: true });
 
-  // ★ セッションの user を最新化（これが超重要）
   req.login(updatedUser, err => {
     if (err) console.log(err);
     return res.redirect('/profile');
   });
 });
 
+
+// -------------------------
+// Other user's profile
+// -------------------------
 app.get('/profile/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
+
   const username = req.params.username;
-  if (req.user.username === username) return res.redirect('/profile');
+  if (req.user.username === username) {
+  const qs = [];
+  if (req.query.from) qs.push(`from=${encodeURIComponent(req.query.from)}`);
+  if (req.query.back) qs.push(`back=${encodeURIComponent(req.query.back)}`);
+  const suffix = qs.length ? `?${qs.join('&')}` : '';
+  return res.redirect('/profile' + suffix);
+}
 
   const profileUser = await User.findOne({ username });
   if (!profileUser) return res.status(404).send("User not found");
 
   const rawPosts = await Post.find({ username }).sort({ time: -1 });
-  const posts = rawPosts.map(p => ({ ...p._doc, id: p._id.toString(), time: formatProfileTime(p.time) }));
+  const posts = rawPosts.map(p => ({
+    ...p._doc,
+    id: p._id.toString(),
+    time: formatProfileTime(p.time)
+  }));
 
   const users = await User.find({}, 'username icon');
-  const userMap = {};
-  users.forEach(u => { userMap[u.username] = u.icon; });
+  const userMap = Object.fromEntries(users.map(u => [u.username, u.icon]));
 
-  const followingCount = Array.isArray(profileUser.following) ? profileUser.following.length : 0;
+  const followingCount = profileUser.following?.length || 0;
   const followerCount = await User.countDocuments({ following: profileUser.username });
 
-  res.render('profile_other', { user: req.user, profileUser, posts, userMap, followingCount, followerCount });
+  // ★ from / back を受け取る（戻るボタン用）
+  const from = req.query.from || null;
+  const back = req.query.back || null;
+
+  res.render('profile_other', {
+    user: req.user,
+    profileUser,
+    posts,
+    userMap,
+    followingCount,
+    followerCount,
+    from,
+    back
+  });
 });
 
+
+// -------------------------
+// Follow / Unfollow
+// -------------------------
 app.post('/follow/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
-  const targetUsername = req.params.username;
 
+  const targetUsername = req.params.username;
   const currentUser = await User.findOne({ username: req.user.username });
   const targetUser = await User.findOne({ username: targetUsername });
 
-  if (!targetUser || currentUser.username === targetUser.username) return res.redirect('/profile');
+  if (!targetUser || currentUser.username === targetUser.username)
+    return res.redirect('/profile');
 
-  const alreadyFollowing = Array.isArray(currentUser.following) && currentUser.following.includes(targetUsername);
-
-  if (!alreadyFollowing) {
+  if (!currentUser.following?.includes(targetUsername)) {
     currentUser.following = currentUser.following || [];
     currentUser.following.push(targetUsername);
     await currentUser.save();
@@ -408,9 +557,10 @@ app.post('/follow/:username', async (req, res) => {
 
 app.post('/unfollow/:username', async (req, res) => {
   if (!req.user) return res.redirect('/');
-  const targetUsername = req.params.username;
 
+  const targetUsername = req.params.username;
   const currentUser = await User.findOne({ username: req.user.username });
+
   currentUser.following = (currentUser.following || []).filter(u => u !== targetUsername);
   await currentUser.save();
 

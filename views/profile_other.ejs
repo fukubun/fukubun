@@ -20,6 +20,32 @@
   <span class="text-lg font-semibold"></span>
 </div>
 
+<div class="">
+  <% if (from) { %>
+    <a
+      href="<%= from === 'timeline'
+              ? '/timeline'
+              : from === 'post'
+                ? '/timeline/post/' + back
+                : '/timeline' %>"
+      class="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm font-medium"
+    >
+      <!-- 左矢印アイコン（背景なし） -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+
+      <% if (from === 'timeline') { %>
+        タイムラインへ戻る
+      <% } else if (from === 'post') { %>
+        投稿へ戻る
+      <% } else { %>
+        戻る
+      <% } %>
+    </a>
+  <% } %>
+</div>
+
 <div class="px-2">
   <!-- 上部プロフィール（表示対象の相手） -->
   <div class="flex items-center gap-4 mb-6">

@@ -46,7 +46,7 @@
           <div class="px-4">
             <div class="flex gap-3 items-start">
 
-            <a href="/profile/<%= post.username %>" class="relative z-10">
+            <a href="/profile/<%= post.username %>?from=timeline" class="relative z-10">
   <img src="<%= post.userIcon || userMap[post.username] %>" class="w-10 h-10 rounded-full object-cover" alt="<%= post.user %>のアイコン">
 </a>
 
@@ -86,8 +86,24 @@
                   <!-- リポスト -->
 <button class="relative z-10 hover:text-green-500 transition-colors">リポスト</button>
 
-<!-- コメント -->
-<button class="relative z-10 hover:text-blue-500 transition-colors">コメント</button>
+<!-- コメント（文字のみ） -->
+<% if (post.alreadyCommented) { %>
+
+  <!-- ★ コメント済み：押せないボタン -->
+  <button class="relative z-10 text-gray-400 cursor-not-allowed"
+          disabled>
+    コメント (<%= post.comments?.length || 0 %>)
+  </button>
+
+<% } else { %>
+
+  <!-- ★ コメント可能：通常ボタン -->
+  <button class="comment-toggle-btn relative z-10 hover:text-blue-500 transition-colors"
+          data-id="<%= post._id %>">
+    コメント (<%= post.comments?.length || 0 %>)
+  </button>
+
+<% } %>
 
 <!-- ブックマーク -->
 <button class="relative z-10 hover:text-gray-700 transition-colors">ブックマーク</button>
@@ -105,6 +121,29 @@
 <% } %>
 
                 </div>
+
+<!-- コメント入力欄（アクション群の一段下に表示） -->
+<div id="comment-box-<%= post._id %>" class="hidden mt-3 relative z-20">
+  <form action="/comment/<%= post._id %>" method="POST" class="flex items-start gap-3">
+ <input type="hidden" name="redirect" value="/timeline">
+    <img src="<%= user.icon %>" class="w-10 h-10 rounded-full object-cover">
+
+    <div class="flex-1">
+      <textarea name="message"
+        class="w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg
+               focus:ring-blue-500 focus:border-blue-500"
+        rows="2"
+        placeholder="コメントを入力…"></textarea>
+
+      <button type="submit"
+        class="mt-2 px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg
+               hover:bg-blue-700">
+        コメントする
+      </button>
+    </div>
+
+  </form>
+</div>
 
                 <!-- 削除モーダル -->
                 <div id="deleteModal-<%= post.id %>" tabindex="-1" aria-hidden="true"
@@ -389,6 +428,25 @@
   });
 </script>
 <script src="/js/like.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".comment-toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const box = document.getElementById(`comment-box-${id}`);
+
+      // 他の投稿のコメント欄は閉じる
+      document.querySelectorAll("[id^='comment-box-']").forEach(b => {
+        if (b !== box) b.classList.add("hidden");
+      });
+
+      // この投稿だけトグル
+      box.classList.toggle("hidden");
+    });
+  });
+});
+</script>
 
 <!-- スピードダイヤル（そのまま） -->
 <div data-dial-init class="fixed end-6 bottom-6 group z-50">
