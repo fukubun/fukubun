@@ -143,27 +143,33 @@ app.post('/signup', async (req, res) => {
 // -------------------------
 app.get('/timeline', async (req, res) => {
   if (!req.user) return res.redirect('/');
+
   try {
     const rawPosts = await Post.find({ username: { $ne: null } }).sort({ time: -1 });
 
-    const formattedPosts = rawPosts.map(p => ({
-      ...p._doc,
-      id: p._id.toString(),
-      time: formatRelativeTime(p.time),
+    const formattedPosts = rawPosts.map(p => {
+      // ★ JST に補正（9時間）
+      const jstTime = new Date(p.time.getTime() + 9 * 60 * 60 * 1000);
 
-      // ★ 追加：この投稿に自分がコメント済みかどうか
-      alreadyCommented: Array.isArray(p.comments)
-        ? p.comments.some(c => c.username === req.user.username)
-        : false
-    }));
+      return {
+        ...p._doc,
+        id: p._id.toString(),
+        time: formatRelativeTime(jstTime),  // ← JST を渡す
+
+        // ★ この投稿に自分がコメント済みかどうか
+        alreadyCommented: Array.isArray(p.comments)
+          ? p.comments.some(c => c.username === req.user.username)
+          : false
+      };
+    });
 
     const users = await User.find({}, 'username icon');
     const userMap = {};
     users.forEach(u => { userMap[u.username] = u.icon; });
 
-    res.render('timeline', { 
-      posts: formattedPosts, 
-      user: req.user, 
+    res.render('timeline', {
+      posts: formattedPosts,
+      user: req.user,
       userMap,
       msg: req.query.msg || null
     });
@@ -198,11 +204,13 @@ app.get('/timeline/post/:id', async (req, res) => {
     const post = await Post.findById(req.params.id).lean();
     if (!post) return res.status(404).send('投稿が見つかりません');
 
+    // ★ ここが重要：id を文字列で追加
+    post.id = post._id.toString();
+
     const users = await User.find({}, 'username icon');
     const userMap = {};
     users.forEach(u => { userMap[u.username] = u.icon });
 
-    // ★ 追加：この投稿に自分がコメント済みかどうか
     const alreadyCommented =
       Array.isArray(post.comments) &&
       post.comments.some(c => c.username === req.user.username);
@@ -213,7 +221,7 @@ app.get('/timeline/post/:id', async (req, res) => {
       userMap,
       from: req.query.from || null,
       formatRelativeTime,
-      alreadyCommented   // ← ★ これがないと EJS が死ぬ
+      alreadyCommented
     });
 
   } catch (err) {
