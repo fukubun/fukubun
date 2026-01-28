@@ -204,8 +204,11 @@ app.get('/timeline/post/:id', async (req, res) => {
     const post = await Post.findById(req.params.id).lean();
     if (!post) return res.status(404).send('投稿が見つかりません');
 
-    // ★ ここが重要：id を文字列で追加
+    // ★ id を文字列で追加
     post.id = post._id.toString();
+
+    // ★ JST 補正（これが無いと公開サイトでズレる）
+    post.time = new Date(post.time.getTime() + 9 * 60 * 60 * 1000);
 
     const users = await User.find({}, 'username icon');
     const userMap = {};
